@@ -4,7 +4,7 @@
 
 # 📊 Dashboard Keuangan Syukur — Frontend Statik
 
-Dashboard Keuangan Syukur adalah **frontend statik modern** berbasis HTML + Tailwind + Alpine.js yang terhubung ke backend API (misalnya Gin Golang) menggunakan **JWT Authentication**.
+Dashboard dari telegram Keuangan Syukur adalah **frontend statik modern** berbasis HTML + Tailwind + Alpine.js yang terhubung ke backend API ( Gin Golang) menggunakan **JWT Authentication**.
 
 Dashboard ini menampilkan:
 
