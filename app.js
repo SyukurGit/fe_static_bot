@@ -16,11 +16,25 @@ function dashboardApp() {
         chartInstance: null,
 
         init() {
-            if (this.token) {
-                this.isLoggedIn = true;
-                this.fetchAllData();
+    if (this.token) {
+        this.isLoggedIn = true;
+        this.fetchAllData();
+
+        // --- FITUR BARU: AUTO REFRESH ---
+        // Jalankan fetchAllData setiap 5000 milidetik (5 detik)
+        setInterval(() => {
+            // Cek dulu, kalau user masih login, baru refresh
+            if (this.isLoggedIn) {
+                // Kita panggil fungsi fetch tanpa await biar jalan di background
+                // (User gak perlu nunggu loading spinner)
+                this.fetchSummary();
+                this.fetchTransactions();
+                this.fetchCategories();
+                this.fetchChart();
             }
-        },
+        }, 5000); // <-- Ganti angka ini kalau mau lebih cepat/lambat
+    }
+},
 
         // AUTH
         async login() {
