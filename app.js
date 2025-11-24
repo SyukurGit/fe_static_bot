@@ -1,84 +1,67 @@
-const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; // Pastikan domain Ngrok benar
+const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
 
-function financeApp() {
+function dashboardApp() {
     return {
-        // --- STATE UTAMA ---
-        token: localStorage.getItem('jwt_token') || '',
+        // Auth state
         isLoggedIn: false,
-        currentView: 'dashboard', // Opsi: 'dashboard', 'transactions', 'reports'
-        isLoading: false,
-        
-        // --- STATE DATA ---
-        user: { username: '' },
-        summary: { total_income: 0, total_expense: 0, balance: 0 },
-        rawTransactions: [], // Data mentah semua transaksi
-        
-        // --- STATE LAPORAN & FILTER ---
-        filterDate: new Date().toISOString().slice(0, 7), // Format YYYY-MM (Bulan ini)
-        activeTransactionType: 'all', // 'all', 'income', 'expense'
-        
-        // --- STATE PAGINATION ---
-        currentPage: 1,
-        itemsPerPage: 10,
-        
-        // --- STATE FORM LOGIN ---
+        isLoggingIn: false,
+        token: localStorage.getItem('jwt_token') || '',
         loginForm: { username: '', password: '' },
         loginError: '',
 
-        // --- INISIALISASI ---
+        // Data state
+        summary: { total_income: 0, total_expense: 0, balance: 0 },
+        transactions: [],
+        categories: [],
+        filterType: '',
+        chartInstance: null,
+
         init() {
             if (this.token) {
                 this.isLoggedIn = true;
-                this.fetchInitialData();
-                
-                // Auto refresh ringan (hanya dashboard) setiap 10 detik
+                this.fetchAllData();
+
+                // --- AUTO REFRESH (POLLING) ---
                 setInterval(() => {
-                    if (this.isLoggedIn && this.currentView === 'dashboard') {
+                    if (this.isLoggedIn) {
+                        // Refresh data tanpa mengganggu user
                         this.fetchSummary();
+                        this.fetchTransactions();
+                        this.fetchCategories();
                         this.fetchChart();
                     }
-                }, 10000);
+                }, 5000); 
             }
         },
 
-        // --- NAVIGASI ---
-        navigateTo(view, type = 'all') {
-            this.currentView = view;
-            this.activeTransactionType = type;
-            this.currentPage = 1; // Reset halaman ke 1
-            
-            // Logic khusus saat pindah halaman
-            if (view === 'transactions') {
-                this.fetchTransactionsByMonth(); // Ambil data detail bulan terpilih
-            } else if (view === 'reports') {
-                this.generateReport(); // Hitung laporan
-            }
-        },
-
-        // --- AUTHENTICATION ---
+        // --- AUTH ---
         async login() {
-            this.isLoading = true;
             this.loginError = '';
+            this.isLoggingIn = true;
             try {
                 const res = await fetch(`${API_URL}/login`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify(this.loginForm)
                 });
                 const data = await res.json();
-                
+
                 if (res.ok) {
                     this.token = data.token;
                     localStorage.setItem('jwt_token', data.token);
                     this.isLoggedIn = true;
-                    this.fetchInitialData();
+                    this.loginError = '';
+                    this.fetchAllData();
                 } else {
-                    this.loginError = data.error || 'Login Gagal';
+                    this.loginError = data.error || 'Login gagal';
                 }
             } catch (e) {
-                this.loginError = 'Koneksi Server Bermasalah';
+                this.loginError = 'Tidak bisa konek ke server';
             } finally {
-                this.isLoading = false;
+                this.isLoggingIn = false;
             }
         },
 
@@ -86,10 +69,19 @@ function financeApp() {
             this.token = '';
             localStorage.removeItem('jwt_token');
             this.isLoggedIn = false;
-            this.currentView = 'dashboard';
+            this.loginForm = { username: '', password: '' };
+            this.transactions = [];
+            this.categories = [];
+            this.summary = { total_income: 0, total_expense: 0, balance: 0 };
+            
+            // Hapus chart saat logout
+            if (this.chartInstance) {
+                this.chartInstance.destroy();
+                this.chartInstance = null;
+            }
         },
 
-        // --- DATA FETCHING CORE ---
+        // --- GENERIC FETCH ---
         async fetchWithAuth(endpoint) {
             try {
                 const res = await fetch(`${API_URL}${endpoint}`, {
@@ -98,21 +90,25 @@ function financeApp() {
                         'ngrok-skip-browser-warning': 'true'
                     }
                 });
-                if (res.status === 401) { this.logout(); return null; }
+
+                if (res.status === 401) {
+                    this.logout();
+                    return null;
+                }
                 return await res.json();
             } catch (e) {
-                console.error(e); return null;
+                console.error('Fetch error:', e);
+                return null;
             }
         },
 
-        async fetchInitialData() {
-            this.isLoading = true;
+        async fetchAllData() {
             await Promise.all([
                 this.fetchSummary(),
-                this.fetchChart(),
-                this.fetchCategories()
+                this.fetchTransactions(),
+                this.fetchCategories(),
+                this.fetchChart()
             ]);
-            this.isLoading = false;
         },
 
         async fetchSummary() {
@@ -120,144 +116,171 @@ function financeApp() {
             if (data) this.summary = data;
         },
 
-        // Mengambil transaksi berdasarkan filter bulan & tahun di Frontend
-        async fetchTransactionsByMonth() {
-            this.isLoading = true;
-            // Kita ambil range tanggal awal dan akhir bulan yang dipilih
-            const [year, month] = this.filterDate.split('-');
-            const startDate = `${year}-${month}-01`;
-            const endDate = new Date(year, month, 0).toISOString().split('T')[0]; // Tanggal terakhir bulan itu
+        async fetchTransactions() {
+            let url = '/api/transactions';
+            if (this.filterType) url += `?type=${this.filterType}`;
+            const res = await this.fetchWithAuth(url);
+            this.transactions = (res && res.data) ? res.data : [];
+        },
 
-            // Request ke backend pakai filter date
-            const data = await this.fetchWithAuth(`/api/transactions?from=${startDate}&to=${endDate}`);
-            
-            if (data && data.data) {
-                // Sort dari yang terbaru
-                this.rawTransactions = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        async fetchCategories() {
+            const res = await this.fetchWithAuth('/api/categories');
+            if (res && res.data) {
+                const totalAll = res.data.reduce((sum, c) => sum + (c.total || 0), 0) || 1;
+                this.categories = res.data
+                    .map(c => ({
+                        ...c,
+                        share: (c.total / totalAll) * 100
+                    }))
+                    .sort((a, b) => b.total - a.total);
             } else {
-                this.rawTransactions = [];
+                this.categories = [];
             }
-            this.isLoading = false;
         },
 
-        // --- LOGIC PAGINATION (CLIENT SIDE) ---
-        get paginatedTransactions() {
-            // 1. Filter by Type (Income/Expense/All)
-            let filtered = this.rawTransactions;
-            if (this.activeTransactionType !== 'all') {
-                filtered = this.rawTransactions.filter(t => t.type === this.activeTransactionType);
+        async fetchChart() {
+            const res = await this.fetchWithAuth('/api/chart/daily');
+            if (res && res.data) {
+                // PERBAIKAN 1: SORTING DATA
+                // Kita harus urutkan data berdasarkan tanggal (Ascending)
+                // Supaya garis grafik tidak zigzag (maju mundur)
+                const sortedData = res.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                this.renderChart(sortedData);
             }
-
-            // 2. Pagination Logic
-            const start = (this.currentPage - 1) * this.itemsPerPage;
-            const end = start + this.itemsPerPage;
-            return filtered.slice(start, end);
         },
 
-        get totalPages() {
-            let filtered = this.rawTransactions;
-            if (this.activeTransactionType !== 'all') {
-                filtered = this.rawTransactions.filter(t => t.type === this.activeTransactionType);
-            }
-            return Math.ceil(filtered.length / this.itemsPerPage) || 1;
-        },
-
-        // --- LOGIC LAPORAN (REPORT ENGINE) ---
-        reportMetrics: {
-            totalMonth: 0,
-            highestDayDate: '-',
-            highestDayAmount: 0,
-            dailyAverage: 0,
-            categoryRanking: []
-        },
-
-        async generateReport() {
-            // Pastikan data bulan ini sudah diambil
-            await this.fetchTransactionsByMonth(); 
-            
-            const txs = this.rawTransactions.filter(t => t.type === 'expense'); // Fokus laporan pengeluaran dulu
-            
-            if (txs.length === 0) {
-                this.reportMetrics = { totalMonth: 0, highestDayDate: '-', highestDayAmount: 0, dailyAverage: 0, categoryRanking: [] };
-                return;
-            }
-
-            // 1. Total Pengeluaran Bulan Ini
-            const total = txs.reduce((sum, t) => sum + t.amount, 0);
-
-            // 2. Cari Hari Paling Boros
-            const dailyGroups = {};
-            txs.forEach(t => {
-                const date = t.created_at.split('T')[0];
-                dailyGroups[date] = (dailyGroups[date] || 0) + t.amount;
-            });
-            
-            let maxDate = '-';
-            let maxAmount = 0;
-            Object.entries(dailyGroups).forEach(([date, amount]) => {
-                if (amount > maxAmount) {
-                    maxAmount = amount;
-                    maxDate = date;
-                }
-            });
-
-            // 3. Kategori Terbesar
-            const catGroups = {};
-            txs.forEach(t => {
-                catGroups[t.category] = (catGroups[t.category] || 0) + t.amount;
-            });
-            const sortedCats = Object.entries(catGroups)
-                .sort(([,a], [,b]) => b - a)
-                .map(([name, amount]) => ({ name, amount, percentage: ((amount/total)*100).toFixed(1) }));
-
-            this.reportMetrics = {
-                totalMonth: total,
-                highestDayDate: this.formatDate(maxDate),
-                highestDayAmount: maxAmount,
-                dailyAverage: total / new Date().getDate(), // Dibagi tanggal hari ini (rata-rata berjalan)
-                categoryRanking: sortedCats
-            };
-        },
-
-        // --- CHARTING ---
-        fetchChart() {
-            this.fetchWithAuth('/api/chart/daily').then(res => {
-                if(res && res.data) this.renderChart(res.data);
-            });
-        },
         
-        renderChart(data) {
-            const ctx = document.getElementById('mainChart');
-            if(!ctx) return;
-            
-            // Sort data by date
-            data.sort((a,b) => new Date(a.date) - new Date(b.date));
-            
-            if(this.chartInstance) this.chartInstance.destroy();
-            
-            this.chartInstance = new Chart(ctx, {
-                type: 'bar', // Ganti jadi Bar chart biar lebih tegas
-                data: {
-                    labels: data.map(d => new Date(d.date).getDate()), // Tampilkan tanggal saja (1, 2, 3)
-                    datasets: [
-                        { label: 'Masuk', data: data.map(d=>d.income), backgroundColor: '#10b981', borderRadius: 4 },
-                        { label: 'Keluar', data: data.map(d=>d.expense), backgroundColor: '#f43f5e', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } },
-                    scales: { 
-                        x: { grid: { display: false } },
-                        y: { beginAtZero: true, grid: { color: '#334155' } }
-                    }
-                }
-            });
+
+        // --- FILTER HANDLER ---
+        async setFilter(type) {
+            this.filterType = type;
+            await this.fetchTransactions();
         },
-        
+
         // --- HELPERS ---
-        formatRupiah(n) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0); },
-        formatDate(s) { if(!s || s==='-') return '-'; return new Date(s).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); }
-    };
+        formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(angka || 0);
+        },
+
+        formatDate(dateString) {
+            const options = {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        },
+
+        // --- CHART LOGIC (DIPERBAIKI) ---
+        renderChart(data) {
+            const ctx = document.getElementById('dailyChart');
+            
+            // Safety check: Jika elemen canvas tidak ada (misal user pindah halaman), stop.
+            if (!ctx) return; 
+
+            // Siapkan Data
+            const labels = data.map(d => {
+                const dt = new Date(d.date);
+                return dt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+            });
+            const incomeData = data.map(d => d.income);
+            const expenseData = data.map(d => d.expense);
+
+            // PERBAIKAN 2: HANDLING INSTANCE YANG LEBIH KUAT
+            // Cek apakah chartInstance ada DAN canvas-nya masih terhubung ke DOM
+            if (this.chartInstance && document.body.contains(this.chartInstance.canvas)) {
+                // Update Data
+                this.chartInstance.data.labels = labels;
+                this.chartInstance.data.datasets[0].data = incomeData;
+                this.chartInstance.data.datasets[1].data = expenseData;
+                
+                // Update tampilan tanpa animasi supaya tidak 'kedip'
+                this.chartInstance.update('none'); 
+            } else {
+                // Jika instance ada tapi canvasnya error/ilang, hancurkan dulu
+                if (this.chartInstance) {
+                    this.chartInstance.destroy();
+                }
+
+                // Buat Baru
+                this.chartInstance = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Pemasukan',
+                                data: incomeData,
+                                borderColor: '#10b981', // emerald-500
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4, // Lebih smooth (kurva)
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            },
+                            {
+                                label: 'Pengeluaran',
+                                data: expenseData,
+                                borderColor: '#f43f5e', // rose-500
+                                backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: false, // Matikan animasi saat inisialisasi awal agar cepat
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
+                        },
+                        plugins: {
+                            legend: {
+                                labels: { color: '#94a3b8', font: { size: 11, family: 'sans-serif' } }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleColor: '#f8fafc',
+                                bodyColor: '#e2e8f0',
+                                borderColor: '#334155',
+                                borderWidth: 1,
+                                padding: 10,
+                                displayColors: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#64748b', font: { size: 10 } },
+                                grid: { display: false }
+                            },
+                            y: {
+                                ticks: { 
+                                    color: '#64748b', 
+                                    font: { size: 10 },
+                                    callback: function(value) {
+                                        // Format sumbu Y jadi "5jt", "100rb" agar rapi
+                                        if(value >= 1000000) return (value/1000000) + 'jt';
+                                        if(value >= 1000) return (value/1000) + 'rb';
+                                        return value;
+                                    }
+                                },
+                                grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [4, 4] }, // Garis putus-putus halus
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
 }

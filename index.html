@@ -3,229 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Profesional</title>
+    <title>Dashboard Keuangan Syukur</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-slate-900 text-slate-200 font-sans antialiased" x-data="financeApp()">
+<body class="min-h-screen bg-slate-950 text-slate-100" x-data="dashboardApp()">
 
-    <div x-show="!isLoggedIn" x-cloak class="flex items-center justify-center min-h-screen bg-slate-950">
-        <div class="w-full max-w-sm p-8 space-y-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
-            <div class="text-center">
-                <h1 class="text-2xl font-bold text-white">Finance<span class="text-emerald-500">Pro</span></h1>
-                <p class="text-slate-400 text-sm mt-2">Masuk untuk mengelola aset Anda</p>
+    <!-- LOGIN LAYER -->
+    <div x-show="!isLoggedIn" x-cloak class="min-h-screen flex items-center justify-center px-4">
+        <div class="w-full max-w-md">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl p-7 backdrop-blur-xl">
+                <div class="flex flex-col items-center mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-3">
+                        <span class="text-2xl">💰</span>
+                    </div>
+                    <h1 class="text-xl font-semibold tracking-tight">Dashboard Keuangan</h1>
+                    <p class="text-xs text-slate-400 mt-1">Masuk untuk melihat ringkasan keuangan kamu</p>
+                </div>
+
+                <form @submit.prevent="login" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Username</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">@</span>
+                            <input
+                                type="text"
+                                x-model="loginForm.username"
+                                class="w-full pl-7 pr-3 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                placeholder="admin"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">🔒</span>
+                            <input
+                                type="password"
+                                x-model="loginForm.password"
+                                class="w-full pl-7 pr-3 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                placeholder="admin123"
+                            >
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="w-full inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold text-white py-2.5 rounded-xl shadow-lg shadow-emerald-500/30 transition"
+                        :disabled="isLoggingIn"
+                    >
+                        <span x-show="!isLoggingIn">Masuk ke Dashboard</span>
+                        <span x-show="isLoggingIn" class="flex items-center gap-2">
+                            <span class="w-3 h-3 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></span>
+                            Memproses...
+                        </span>
+                    </button>
+
+                    <p x-show="loginError" x-text="loginError" class="text-xs text-red-400 text-center mt-1"></p>
+                </form>
             </div>
-            <form @submit.prevent="login" class="space-y-4">
-                <div>
-                    <input x-model="loginForm.username" type="text" placeholder="Username" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition text-sm">
-                </div>
-                <div>
-                    <input x-model="loginForm.password" type="password" placeholder="Password" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition text-sm">
-                </div>
-                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition shadow-lg shadow-emerald-500/20">
-                    <span x-show="!isLoading">Akses Dashboard</span>
-                    <span x-show="isLoading">Memuat...</span>
-                </button>
-                <p x-show="loginError" x-text="loginError" class="text-red-500 text-xs text-center"></p>
-            </form>
         </div>
     </div>
 
-    <div x-show="isLoggedIn" x-cloak class="flex h-screen overflow-hidden bg-slate-950">
-        
-        <aside class="hidden md:flex flex-col w-64 bg-slate-900 border-r border-slate-800">
-            <div class="p-6">
-                <h2 class="text-xl font-bold text-white tracking-wide">Finance<span class="text-emerald-500">Pro</span></h2>
-            </div>
-            <nav class="flex-1 px-4 space-y-2">
-                <a @click="navigateTo('dashboard')" :class="currentView === 'dashboard' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition">
-                    <span>📊</span> Dashboard
-                </a>
-                <a @click="navigateTo('transactions', 'income')" :class="currentView === 'transactions' && activeTransactionType === 'income' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition">
-                    <span>💰</span> Pemasukan
-                </a>
-                <a @click="navigateTo('transactions', 'expense')" :class="currentView === 'transactions' && activeTransactionType === 'expense' ? 'bg-slate-800 text-rose-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition">
-                    <span>💸</span> Pengeluaran
-                </a>
-                <a @click="navigateTo('reports')" :class="currentView === 'reports' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition">
-                    <span>📈</span> Laporan & Analisa
-                </a>
-            </nav>
-            <div class="p-4 border-t border-slate-800">
-                <button @click="logout" class="w-full py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition">Keluar</button>
-            </div>
-        </aside>
-
-        <main class="flex-1 overflow-y-auto relative">
-            
-            <div class="md:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900 sticky top-0 z-20">
-                <h2 class="font-bold">Keuangan Syukur</h2>
-                <button @click="logout" class="text-xs text-red-400">Keluar</button>
-            </div>
-
-            <div x-show="currentView === 'dashboard'" class="p-4 md:p-8 space-y-6 fade-enter">
-                <div class="flex justify-between items-end">
+    <!-- DASHBOARD -->
+    <div x-show="isLoggedIn" x-cloak class="min-h-screen flex flex-col">
+        <!-- NAVBAR -->
+        <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                        <span class="text-lg">💰</span>
+                    </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-white">Ringkasan Aset</h1>
-                        <p class="text-slate-400 text-sm">Posisi keuangan Anda saat ini</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-slate-500 uppercase tracking-wider">Saldo Bersih</p>
-                        <p class="text-3xl font-bold text-blue-500" x-text="formatRupiah(summary.balance)"></p>
+                        <p class="text-sm font-semibold tracking-tight">Keuangan Syukur</p>
+                        <p class="text-[11px] text-slate-400">Ringkasan finansial harian</p>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div @click="navigateTo('transactions', 'income')" class="group bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-6xl">⬇</div>
-                        <p class="text-slate-400 text-xs uppercase tracking-widest mb-1">Total Pemasukan</p>
-                        <p class="text-2xl font-bold text-emerald-400" x-text="formatRupiah(summary.total_income)"></p>
-                        <p class="text-xs text-emerald-600 mt-2 group-hover:translate-x-1 transition">Lihat detail →</p>
-                    </div>
-
-                    <div @click="navigateTo('transactions', 'expense')" class="group bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-rose-500/50 cursor-pointer transition relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-6xl">⬆</div>
-                        <p class="text-slate-400 text-xs uppercase tracking-widest mb-1">Total Pengeluaran</p>
-                        <p class="text-2xl font-bold text-rose-400" x-text="formatRupiah(summary.total_expense)"></p>
-                        <p class="text-xs text-rose-600 mt-2 group-hover:translate-x-1 transition">Lihat detail →</p>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                    <h3 class="font-bold text-slate-200 mb-4">Tren 30 Hari Terakhir</h3>
-                    <div class="h-64 relative">
-                        <canvas id="mainChart"></canvas>
-                    </div>
+                <div class="flex items-center gap-3">
+                    <button
+                        @click="fetchAllData"
+                        class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
+                    >
+                        🔄 <span>Refresh</span>
+                    </button>
+                    <button
+                        @click="logout"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/90 text-white hover:bg-red-600 transition"
+                    >
+                        Keluar
+                    </button>
                 </div>
             </div>
+        </header>
 
-            <div x-show="currentView === 'transactions'" class="p-4 md:p-8 space-y-6 fade-enter">
-                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+        <!-- MAIN CONTENT -->
+        <main class="flex-1">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
+                <!-- TOP ROW: TITLE + MOBILE REFRESH -->
+                <div class="flex items-center justify-between gap-3">
                     <div>
-                        <button @click="navigateTo('dashboard')" class="text-xs text-slate-500 mb-2 hover:text-white">← Kembali</button>
-                        <h1 class="text-2xl font-bold text-white">
-                            Detail <span x-text="activeTransactionType === 'income' ? 'Pemasukan' : (activeTransactionType === 'expense' ? 'Pengeluaran' : 'Semua')"></span>
-                        </h1>
+                        <h2 class="text-lg font-semibold tracking-tight">Ringkasan Keuangan</h2>
+                        <p class="text-xs text-slate-400 mt-1">Lihat posisi uang kamu dalam satu tampilan</p>
                     </div>
-                    
-                    <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg px-3 py-2">
-                        <span class="text-slate-400 text-xs mr-2">Periode:</span>
-                        <input type="month" x-model="filterDate" @change="fetchTransactionsByMonth" class="bg-transparent text-white text-sm focus:outline-none">
+                    <button
+                        @click="fetchAllData"
+                        class="sm:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
+                    >
+                        🔄 <span>Refresh</span>
+                    </button>
+                </div>
+
+                <!-- SUMMARY CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Income -->
+                    <div class="bg-slate-900/80 border border-emerald-500/50 rounded-2xl p-4 shadow-lg shadow-emerald-500/10">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-[11px] font-medium text-emerald-300 tracking-[0.18em] uppercase">Pemasukan</p>
+                                <p class="mt-2 text-xl font-semibold" x-text="formatRupiah(summary.total_income)"></p>
+                                <p class="mt-1 text-[11px] text-slate-400">Total uang masuk</p>
+                            </div>
+                            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center text-lg">
+                                ⬆️
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expense -->
+                    <div class="bg-slate-900/80 border border-rose-500/50 rounded-2xl p-4 shadow-lg shadow-rose-500/10">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-[11px] font-medium text-rose-300 tracking-[0.18em] uppercase">Pengeluaran</p>
+                                <p class="mt-2 text-xl font-semibold" x-text="formatRupiah(summary.total_expense)"></p>
+                                <p class="mt-1 text-[11px] text-slate-400">Total uang keluar</p>
+                            </div>
+                            <div class="w-9 h-9 rounded-xl bg-rose-500/20 flex items-center justify-center text-lg">
+                                ⬇️
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Balance -->
+                    <div class="bg-slate-900/80 border border-sky-500/50 rounded-2xl p-4 shadow-lg shadow-sky-500/10">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-[11px] font-medium text-sky-300 tracking-[0.18em] uppercase">Saldo</p>
+                                <p class="mt-2 text-xl font-semibold" x-text="formatRupiah(summary.balance)"></p>
+                                <p class="mt-1 text-[11px] text-slate-400">Sisa yang bisa kamu pakai</p>
+                            </div>
+                            <div class="w-9 h-9 rounded-xl bg-sky-500/20 flex items-center justify-center text-lg">
+                                💼
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+                <!-- MIDDLE ROW: CHART + CATEGORY -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Chart -->
+                    <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <h3 class="text-sm font-semibold tracking-tight">Pergerakan 30 Hari Terakhir</h3>
+                                <p class="text-[11px] text-slate-400 mt-1">Perbandingan pemasukan dan pengeluaran per hari</p>
+                            </div>
+                        </div>
+                        <div class="relative h-64">
+                            <canvas id="dailyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Categories -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col">
+                        <div class="mb-3">
+                            <h3 class="text-sm font-semibold tracking-tight">Kategori Terbesar</h3>
+                            <p class="text-[11px] text-slate-400 mt-1">Lihat kategori yang paling banyak menyedot uang</p>
+                        </div>
+                        <div class="flex-1 overflow-y-auto max-h-64 pr-1 space-y-2">
+                            <template x-for="cat in categories" :key="cat.category + cat.type">
+                                <div class="bg-slate-950/70 border border-slate-800 rounded-xl px-3 py-2">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex flex-col">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs font-medium" x-text="cat.category"></span>
+                                                <span
+                                                    class="text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-[0.14em]"
+                                                    :class="cat.type === 'income'
+                                                        ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/40'
+                                                        : 'bg-rose-500/10 text-rose-300 border border-rose-500/40'"
+                                                    x-text="cat.type"
+                                                ></span>
+                                            </div>
+                                            <span class="text-[10px] text-slate-400 mt-0.5" x-text="formatRupiah(cat.total)"></span>
+                                        </div>
+                                        <span class="text-[11px] font-semibold text-slate-200" x-text="cat.share.toFixed(0) + '%'"></span>
+                                    </div>
+                                    <div class="mt-2 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                                        <div
+                                            class="h-full rounded-full"
+                                            :class="cat.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'"
+                                            :style="`width: ${cat.share}%;`"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div x-show="categories.length === 0" class="text-xs text-slate-500 text-center mt-6">
+                                Belum ada data kategori.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRANSACTIONS -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                    <div class="px-4 sm:px-5 py-3 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/80">
+                        <div>
+                            <h3 class="text-sm font-semibold tracking-tight">Riwayat Transaksi</h3>
+                            <p class="text-[11px] text-slate-400 mt-1">Gunakan filter tipe supaya lebih fokus</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="px-3 py-1.5 rounded-full text-[11px] border text-slate-200"
+                                :class="filterType === '' ? 'bg-slate-100 text-slate-900 border-slate-100' : 'bg-slate-900 border-slate-700'"
+                                @click="setFilter('')"
+                            >
+                                Semua
+                            </button>
+                            <button
+                                class="px-3 py-1.5 rounded-full text-[11px] border text-slate-200"
+                                :class="filterType === 'income' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-700'"
+                                @click="setFilter('income')"
+                            >
+                                Pemasukan
+                            </button>
+                            <button
+                                class="px-3 py-1.5 rounded-full text-[11px] border text-slate-200"
+                                :class="filterType === 'expense' ? 'bg-rose-500 text-white border-rose-500' : 'bg-slate-900 border-slate-700'"
+                                @click="setFilter('expense')"
+                            >
+                                Pengeluaran
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-950/50 text-slate-400 text-xs uppercase">
-                                <tr>
-                                    <th class="p-4 font-medium">Tanggal</th>
-                                    <th class="p-4 font-medium">Kategori</th>
-                                    <th class="p-4 font-medium">Catatan</th>
-                                    <th class="p-4 font-medium text-right">Jumlah</th>
+                        <table class="min-w-full text-left text-xs">
+                            <thead>
+                                <tr class="bg-slate-950/90 text-slate-400 uppercase tracking-[0.14em] text-[10px] border-b border-slate-800">
+                                    <th class="px-4 sm:px-5 py-3">Tanggal</th>
+                                    <th class="px-4 sm:px-5 py-3">Kategori</th>
+                                    <th class="px-4 sm:px-5 py-3">Catatan</th>
+                                    <th class="px-4 sm:px-5 py-3 text-right">Jumlah</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
-                                <template x-for="t in paginatedTransactions" :key="t.id">
-                                    <tr class="hover:bg-slate-800/50 transition">
-                                        <td class="p-4 text-slate-300 whitespace-nowrap" x-text="formatDate(t.created_at)"></td>
-                                        <td class="p-4">
-                                            <span class="px-2 py-1 rounded text-xs font-bold uppercase" 
-                                                  :class="t.type === 'income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'"
-                                                  x-text="t.category"></span>
+                                <template x-for="trx in transactions" :key="trx.id">
+                                    <tr class="hover:bg-slate-800/70 transition">
+                                        <td class="px-4 sm:px-5 py-3 align-top text-[11px]" x-text="formatDate(trx.created_at)"></td>
+                                        <td class="px-4 sm:px-5 py-3 align-top">
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.14em]"
+                                                :class="trx.type === 'income'
+                                                    ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/40'
+                                                    : 'bg-rose-500/10 text-rose-300 border border-rose-500/40'"
+                                                x-text="trx.category"
+                                            ></span>
                                         </td>
-                                        <td class="p-4 text-slate-400" x-text="t.note"></td>
-                                        <td class="p-4 text-right font-mono font-medium" 
-                                            :class="t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'"
-                                            x-text="formatRupiah(t.amount)"></td>
+                                        <td class="px-4 sm:px-5 py-3 align-top text-[11px] text-slate-400" x-text="trx.note"></td>
+                                        <td
+                                            class="px-4 sm:px-5 py-3 align-top text-right text-[11px] font-semibold"
+                                            :class="trx.type === 'income' ? 'text-emerald-300' : 'text-rose-300'"
+                                            x-text="(trx.type === 'expense' ? '- ' : '+ ') + formatRupiah(trx.amount)"
+                                        ></td>
                                     </tr>
                                 </template>
-                                <tr x-show="paginatedTransactions.length === 0">
-                                    <td colspan="4" class="p-8 text-center text-slate-500">Tidak ada data di periode ini.</td>
+
+                                <tr x-show="transactions.length === 0">
+                                    <td colspan="4" class="px-4 sm:px-5 py-10 text-center text-xs text-slate-500">
+                                        Tidak ada transaksi ditemukan.
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    
-                    <div class="p-4 border-t border-slate-800 flex justify-between items-center bg-slate-900">
-                        <button @click="if(currentPage > 1) currentPage--" :disabled="currentPage === 1" class="px-3 py-1 rounded border border-slate-700 text-slate-300 text-xs hover:bg-slate-800 disabled:opacity-50">Sebelumnya</button>
-                        <span class="text-xs text-slate-500">Hal <span x-text="currentPage"></span> dari <span x-text="totalPages"></span></span>
-                        <button @click="if(currentPage < totalPages) currentPage++" :disabled="currentPage === totalPages" class="px-3 py-1 rounded border border-slate-700 text-slate-300 text-xs hover:bg-slate-800 disabled:opacity-50">Selanjutnya</button>
-                    </div>
                 </div>
+
             </div>
-
-            <div x-show="currentView === 'reports'" class="p-4 md:p-8 space-y-6 fade-enter">
-                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                    <div>
-                        <button @click="navigateTo('dashboard')" class="text-xs text-slate-500 mb-2 hover:text-white">← Kembali</button>
-                        <h1 class="text-2xl font-bold text-white">Laporan Analisa</h1>
-                        <p class="text-slate-400 text-sm">Breakdown pengeluaran bulan <span x-text="filterDate"></span></p>
-                    </div>
-                    <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg px-3 py-2">
-                        <span class="text-slate-400 text-xs mr-2">Pilih Bulan:</span>
-                        <input type="month" x-model="filterDate" @change="generateReport" class="bg-transparent text-white text-sm focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
-                        <p class="text-slate-500 text-xs uppercase">Total Keluar Bulan Ini</p>
-                        <p class="text-2xl font-bold text-white mt-1" x-text="formatRupiah(reportMetrics.totalMonth)"></p>
-                    </div>
-                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
-                        <p class="text-slate-500 text-xs uppercase">Rata-rata Harian</p>
-                        <p class="text-2xl font-bold text-blue-400 mt-1" x-text="formatRupiah(reportMetrics.dailyAverage)"></p>
-                    </div>
-                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
-                        <p class="text-slate-500 text-xs uppercase">Hari Paling Boros</p>
-                        <p class="text-lg font-bold text-rose-400 mt-1" x-text="reportMetrics.highestDayDate"></p>
-                        <p class="text-xs text-slate-400" x-text="formatRupiah(reportMetrics.highestDayAmount)"></p>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 rounded-xl border border-slate-800 p-6">
-                    <h3 class="font-bold text-white mb-4">Top Kategori Pengeluaran</h3>
-                    <div class="space-y-4">
-                        <template x-for="(cat, index) in reportMetrics.categoryRanking" :key="index">
-                            <div>
-                                <div class="flex justify-between text-sm mb-1">
-                                    <span class="text-slate-300"><span class="text-slate-500 mr-2" x-text="'#'+(index+1)"></span> <span x-text="cat.name"></span></span>
-                                    <span class="text-white font-medium" x-text="formatRupiah(cat.amount)"></span>
-                                </div>
-                                <div class="w-full bg-slate-800 rounded-full h-2">
-                                    <div class="bg-rose-500 h-2 rounded-full transition-all duration-500" :style="`width: ${cat.percentage}%`"></div>
-                                </div>
-                                <div class="text-right text-[10px] text-slate-500 mt-1" x-text="cat.percentage + '% dari total'"></div>
-                            </div>
-                        </template>
-                        <div x-show="reportMetrics.categoryRanking.length === 0" class="text-center text-slate-500 text-sm py-4">
-                            Belum ada data pengeluaran bulan ini.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </main>
-
-        <div class="md:hidden fixed bottom-0 w-full bg-slate-900 border-t border-slate-800 flex justify-around py-3 px-2 z-50">
-            <button @click="navigateTo('dashboard')" :class="currentView === 'dashboard' ? 'text-emerald-500' : 'text-slate-500'" class="flex flex-col items-center text-xs">
-                <span class="text-lg mb-1">📊</span> Home
-            </button>
-            <button @click="navigateTo('transactions', 'income')" :class="activeTransactionType === 'income' && currentView === 'transactions' ? 'text-emerald-500' : 'text-slate-500'" class="flex flex-col items-center text-xs">
-                <span class="text-lg mb-1">💰</span> Masuk
-            </button>
-            <button @click="navigateTo('transactions', 'expense')" :class="activeTransactionType === 'expense' && currentView === 'transactions' ? 'text-rose-500' : 'text-slate-500'" class="flex flex-col items-center text-xs">
-                <span class="text-lg mb-1">💸</span> Keluar
-            </button>
-            <button @click="navigateTo('reports')" :class="currentView === 'reports' ? 'text-blue-500' : 'text-slate-500'" class="flex flex-col items-center text-xs">
-                <span class="text-lg mb-1">📈</span> Laporan
-            </button>
-        </div>
     </div>
 
+    <!-- Custom JS -->
     <script src="app.js"></script>
 </body>
 </html>
