@@ -29,7 +29,10 @@ function dashboardApp() {
             try {
                 const res = await fetch(`${API_URL}/login`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // <--- TAMBAHAN PENTING 1
+            },
                     body: JSON.stringify(this.loginForm)
                 });
                 const data = await res.json();
@@ -64,7 +67,11 @@ function dashboardApp() {
         async fetchWithAuth(endpoint) {
             try {
                 const res = await fetch(`${API_URL}${endpoint}`, {
-                    headers: { 'Authorization': `Bearer ${this.token}` }
+                    headers: { 
+            'Authorization': `Bearer ${this.token}`,
+            'ngrok-skip-browser-warning': 'true' // <--- TAMBAHAN PENTING 2
+        }
+                    
                 });
 
                 if (res.status === 401) {
