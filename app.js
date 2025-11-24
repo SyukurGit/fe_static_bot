@@ -1,4 +1,5 @@
 const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
+
 function dashboardApp() {
     return {
         // Auth state
@@ -16,27 +17,24 @@ function dashboardApp() {
         chartInstance: null,
 
         init() {
-    if (this.token) {
-        this.isLoggedIn = true;
-        this.fetchAllData();
+            if (this.token) {
+                this.isLoggedIn = true;
+                this.fetchAllData();
 
-        // --- FITUR BARU: AUTO REFRESH ---
-        // Jalankan fetchAllData setiap 5000 milidetik (5 detik)
-        setInterval(() => {
-            // Cek dulu, kalau user masih login, baru refresh
-            if (this.isLoggedIn) {
-                // Kita panggil fungsi fetch tanpa await biar jalan di background
-                // (User gak perlu nunggu loading spinner)
-                this.fetchSummary();
-                this.fetchTransactions();
-                this.fetchCategories();
-                this.fetchChart();
+                // --- AUTO REFRESH (POLLING) ---
+                setInterval(() => {
+                    if (this.isLoggedIn) {
+                        // Refresh data tanpa mengganggu user
+                        this.fetchSummary();
+                        this.fetchTransactions();
+                        this.fetchCategories();
+                        this.fetchChart();
+                    }
+                }, 5000); 
             }
-        }, 5000); // <-- Ganti angka ini kalau mau lebih cepat/lambat
-    }
-},
+        },
 
-        // AUTH
+        // --- AUTH ---
         async login() {
             this.loginError = '';
             this.isLoggingIn = true;
@@ -44,9 +42,9 @@ function dashboardApp() {
                 const res = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: { 
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true' // <--- TAMBAHAN PENTING 1
-            },
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify(this.loginForm)
                 });
                 const data = await res.json();
@@ -75,24 +73,28 @@ function dashboardApp() {
             this.transactions = [];
             this.categories = [];
             this.summary = { total_income: 0, total_expense: 0, balance: 0 };
+            
+            // Hapus chart saat logout
+            if (this.chartInstance) {
+                this.chartInstance.destroy();
+                this.chartInstance = null;
+            }
         },
 
-        // GENERIC FETCH
+        // --- GENERIC FETCH ---
         async fetchWithAuth(endpoint) {
             try {
                 const res = await fetch(`${API_URL}${endpoint}`, {
                     headers: { 
-            'Authorization': `Bearer ${this.token}`,
-            'ngrok-skip-browser-warning': 'true' // <--- TAMBAHAN PENTING 2
-        }
-                    
+                        'Authorization': `Bearer ${this.token}`,
+                        'ngrok-skip-browser-warning': 'true'
+                    }
                 });
 
                 if (res.status === 401) {
                     this.logout();
                     return null;
                 }
-
                 return await res.json();
             } catch (e) {
                 console.error('Fetch error:', e);
@@ -118,11 +120,7 @@ function dashboardApp() {
             let url = '/api/transactions';
             if (this.filterType) url += `?type=${this.filterType}`;
             const res = await this.fetchWithAuth(url);
-            if (res && res.data) {
-                this.transactions = res.data;
-            } else {
-                this.transactions = [];
-            }
+            this.transactions = (res && res.data) ? res.data : [];
         },
 
         async fetchCategories() {
@@ -147,13 +145,13 @@ function dashboardApp() {
             }
         },
 
-        // FILTER HANDLER
+        // --- FILTER HANDLER ---
         async setFilter(type) {
             this.filterType = type;
             await this.fetchTransactions();
         },
 
-        // HELPERS
+        // --- HELPERS ---
         formatRupiah(angka) {
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
@@ -164,92 +162,88 @@ function dashboardApp() {
 
         formatDate(dateString) {
             const options = {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
             };
             return new Date(dateString).toLocaleDateString('id-ID', options);
         },
 
-        // CHART
+        // --- CHART LOGIC (DIPERBAIKI) ---
         renderChart(data) {
-            const ctx = document.getElementById('dailyChart').getContext('2d');
+            const ctx = document.getElementById('dailyChart');
+            if (!ctx) return; // Jaga-jaga kalau elemen belum ada
 
+            // Siapkan Data Baru
             const labels = data.map(d => {
                 const dt = new Date(d.date);
-                return dt.toLocaleDateString('id-ID', {
-                    day: '2-digit',
-                    month: 'short'
-                });
+                return dt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
             });
-
             const incomeData = data.map(d => d.income);
             const expenseData = data.map(d => d.expense);
 
+            // LOGIKA BARU: Update vs Create
             if (this.chartInstance) {
-                this.chartInstance.destroy();
-            }
-
-            this.chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Pemasukan',
-                            data: incomeData,
-                            borderColor: '#22c55e',
-                            backgroundColor: 'rgba(34, 197, 94, 0.12)',
-                            tension: 0.35,
-                            fill: true,
-                            pointRadius: 2
+                // Jika chart sudah ada, CUKUP UPDATE DATANYA SAJA
+                // Jangan destroy() supaya tidak flicker/kedip
+                this.chartInstance.data.labels = labels;
+                this.chartInstance.data.datasets[0].data = incomeData;
+                this.chartInstance.data.datasets[1].data = expenseData;
+                
+                // Update tanpa animasi 'bounce' yang bikin pusing
+                this.chartInstance.update('none'); 
+            } else {
+                // Jika belum ada, baru buat dari awal
+                this.chartInstance = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Pemasukan',
+                                data: incomeData,
+                                borderColor: '#22c55e',
+                                backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                                tension: 0.35,
+                                fill: true,
+                                pointRadius: 2
+                            },
+                            {
+                                label: 'Pengeluaran',
+                                data: expenseData,
+                                borderColor: '#f97373',
+                                backgroundColor: 'rgba(248, 113, 113, 0.12)',
+                                tension: 0.35,
+                                fill: true,
+                                pointRadius: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false, // Tooltip muncul walau gak pas di titik
+                            mode: 'index',
                         },
-                        {
-                            label: 'Pengeluaran',
-                            data: expenseData,
-                            borderColor: '#f97373',
-                            backgroundColor: 'rgba(248, 113, 113, 0.12)',
-                            tension: 0.35,
-                            fill: true,
-                            pointRadius: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#cbd5f5',
-                                font: { size: 10 }
+                        plugins: {
+                            legend: {
+                                labels: { color: '#cbd5f5', font: { size: 10 } }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#94a3b8', font: { size: 10 }, maxRotation: 0 },
+                                grid: { display: false }
+                            },
+                            y: {
+                                ticks: { color: '#94a3b8', font: { size: 10 } },
+                                grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                                beginAtZero: true
                             }
                         }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#94a3b8',
-                                maxRotation: 0,
-                                font: { size: 10 }
-                            },
-                            grid: { display: false }
-                        },
-                        y: {
-                            ticks: {
-                                color: '#94a3b8',
-                                font: { size: 10 }
-                            },
-                            grid: {
-                                color: 'rgba(148, 163, 184, 0.2)'
-                            },
-                            beginAtZero: true
-                        }
                     }
-                }
-            });
+                });
+            }
         }
     }
 }
