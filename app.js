@@ -141,9 +141,16 @@ function dashboardApp() {
         async fetchChart() {
             const res = await this.fetchWithAuth('/api/chart/daily');
             if (res && res.data) {
-                this.renderChart(res.data);
+                // PERBAIKAN 1: SORTING DATA
+                // Kita harus urutkan data berdasarkan tanggal (Ascending)
+                // Supaya garis grafik tidak zigzag (maju mundur)
+                const sortedData = res.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                this.renderChart(sortedData);
             }
         },
+
+        
 
         // --- FILTER HANDLER ---
         async setFilter(type) {
@@ -171,9 +178,11 @@ function dashboardApp() {
         // --- CHART LOGIC (DIPERBAIKI) ---
         renderChart(data) {
             const ctx = document.getElementById('dailyChart');
-            if (!ctx) return; // Jaga-jaga kalau elemen belum ada
+            
+            // Safety check: Jika elemen canvas tidak ada (misal user pindah halaman), stop.
+            if (!ctx) return; 
 
-            // Siapkan Data Baru
+            // Siapkan Data
             const labels = data.map(d => {
                 const dt = new Date(d.date);
                 return dt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
@@ -181,18 +190,23 @@ function dashboardApp() {
             const incomeData = data.map(d => d.income);
             const expenseData = data.map(d => d.expense);
 
-            // LOGIKA BARU: Update vs Create
-            if (this.chartInstance) {
-                // Jika chart sudah ada, CUKUP UPDATE DATANYA SAJA
-                // Jangan destroy() supaya tidak flicker/kedip
+            // PERBAIKAN 2: HANDLING INSTANCE YANG LEBIH KUAT
+            // Cek apakah chartInstance ada DAN canvas-nya masih terhubung ke DOM
+            if (this.chartInstance && document.body.contains(this.chartInstance.canvas)) {
+                // Update Data
                 this.chartInstance.data.labels = labels;
                 this.chartInstance.data.datasets[0].data = incomeData;
                 this.chartInstance.data.datasets[1].data = expenseData;
                 
-                // Update tanpa animasi 'bounce' yang bikin pusing
+                // Update tampilan tanpa animasi supaya tidak 'kedip'
                 this.chartInstance.update('none'); 
             } else {
-                // Jika belum ada, baru buat dari awal
+                // Jika instance ada tapi canvasnya error/ilang, hancurkan dulu
+                if (this.chartInstance) {
+                    this.chartInstance.destroy();
+                }
+
+                // Buat Baru
                 this.chartInstance = new Chart(ctx.getContext('2d'), {
                     type: 'line',
                     data: {
@@ -201,43 +215,66 @@ function dashboardApp() {
                             {
                                 label: 'Pemasukan',
                                 data: incomeData,
-                                borderColor: '#22c55e',
-                                backgroundColor: 'rgba(34, 197, 94, 0.12)',
-                                tension: 0.35,
+                                borderColor: '#10b981', // emerald-500
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4, // Lebih smooth (kurva)
                                 fill: true,
-                                pointRadius: 2
+                                pointRadius: 3,
+                                pointHoverRadius: 5
                             },
                             {
                                 label: 'Pengeluaran',
                                 data: expenseData,
-                                borderColor: '#f97373',
-                                backgroundColor: 'rgba(248, 113, 113, 0.12)',
-                                tension: 0.35,
+                                borderColor: '#f43f5e', // rose-500
+                                backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
                                 fill: true,
-                                pointRadius: 2
+                                pointRadius: 3,
+                                pointHoverRadius: 5
                             }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: false, // Matikan animasi saat inisialisasi awal agar cepat
                         interaction: {
-                            intersect: false, // Tooltip muncul walau gak pas di titik
+                            intersect: false,
                             mode: 'index',
                         },
                         plugins: {
                             legend: {
-                                labels: { color: '#cbd5f5', font: { size: 10 } }
+                                labels: { color: '#94a3b8', font: { size: 11, family: 'sans-serif' } }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleColor: '#f8fafc',
+                                bodyColor: '#e2e8f0',
+                                borderColor: '#334155',
+                                borderWidth: 1,
+                                padding: 10,
+                                displayColors: true
                             }
                         },
                         scales: {
                             x: {
-                                ticks: { color: '#94a3b8', font: { size: 10 }, maxRotation: 0 },
+                                ticks: { color: '#64748b', font: { size: 10 } },
                                 grid: { display: false }
                             },
                             y: {
-                                ticks: { color: '#94a3b8', font: { size: 10 } },
-                                grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                                ticks: { 
+                                    color: '#64748b', 
+                                    font: { size: 10 },
+                                    callback: function(value) {
+                                        // Format sumbu Y jadi "5jt", "100rb" agar rapi
+                                        if(value >= 1000000) return (value/1000000) + 'jt';
+                                        if(value >= 1000) return (value/1000) + 'rb';
+                                        return value;
+                                    }
+                                },
+                                grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [4, 4] }, // Garis putus-putus halus
                                 beginAtZero: true
                             }
                         }
