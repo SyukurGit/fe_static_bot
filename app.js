@@ -1,5 +1,4 @@
-const API_URL = "http://localhost:8080"; // sesuaikan kalau beda port
-
+const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
 function dashboardApp() {
     return {
         // Auth state
