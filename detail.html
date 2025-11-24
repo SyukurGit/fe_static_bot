@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Transaksi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="detailApp()">
+
+    <header class="sticky top-0 z-30 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+        <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition text-sm font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Dashboard
+            </a>
+            <h1 class="text-lg font-bold capitalize" x-text="getViewTitle()"></h1>
+            <button @click="resetToToday()" class="text-xs font-medium text-emerald-500 hover:text-emerald-400">
+                Hari Ini
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-xl mx-auto px-4 py-6 space-y-6">
+        
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+            <button @click="changeMonth(-1)" class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            
+            <div class="text-center">
+                <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Periode</p>
+                <p class="text-lg font-bold text-white" x-text="formatMonthYear(currentDateContext)"></p>
+                <p class="text-xs" :class="viewMode === 'income' ? 'text-emerald-400' : (viewMode === 'expense' ? 'text-rose-400' : 'text-sky-400')">
+                    Total: <span x-text="formatRupiah(monthlyTotal)"></span>
+                </p>
+            </div>
+
+            <button @click="changeMonth(1)" class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+
+        <div x-show="!isLoading && availableDatesInMonth.length > 0" class="flex items-center justify-between gap-4">
+            <button 
+                @click="navigateDate(-1)" 
+                :disabled="isFirstDate"
+                class="flex-1 py-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition group"
+            >
+                <svg class="w-4 h-4 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                <span class="text-xs font-medium text-slate-300">Tgl Sblmnya</span>
+            </button>
+
+            <div class="flex flex-col items-center min-w-[120px]">
+                <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Sedang Dilihat</span>
+                <span class="text-sm font-bold text-white whitespace-nowrap" x-text="formatDateShort(activeDateKey)"></span>
+            </div>
+
+            <button 
+                @click="navigateDate(1)" 
+                :disabled="isLastDate"
+                class="flex-1 py-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition group"
+            >
+                <span class="text-xs font-medium text-slate-300">Tgl Berikut</span>
+                <svg class="w-4 h-4 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+
+        <div class="min-h-[300px]">
+            <div x-show="isLoading" class="py-10 text-center animate-pulse">
+                <p class="text-slate-500 text-sm">Memuat data...</p>
+            </div>
+
+            <div x-show="!isLoading && availableDatesInMonth.length === 0" class="py-12 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+                <p class="text-4xl mb-2">💤</p>
+                <p class="text-slate-400 text-sm">Tidak ada transaksi di bulan ini.</p>
+            </div>
+
+            <div x-show="!isLoading && activeTransactions.length > 0" class="space-y-4 animate-fade-in-up">
+                
+                <div class="flex items-center justify-between px-2">
+                    <span class="text-xs text-slate-400">Total Hari Ini</span>
+                    <span class="text-lg font-bold" :class="viewMode === 'income' ? 'text-emerald-400' : (viewMode === 'expense' ? 'text-rose-400' : 'text-sky-400')" x-text="formatRupiah(dailyTotal)"></span>
+                </div>
+
+                <template x-for="item in activeTransactions" :key="item.id">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between hover:bg-slate-800/80 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg bg-slate-950 border border-slate-800 shrink-0">
+                                <span x-text="getCategoryIcon(item.category)"></span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-white truncate" x-text="item.category"></p>
+                                <p class="text-xs text-slate-400 truncate w-32 sm:w-48" x-text="item.note || 'Tanpa catatan'"></p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-sm font-semibold whitespace-nowrap" 
+                               :class="item.type === 'income' ? 'text-emerald-400' : 'text-rose-400'" 
+                               x-text="formatRupiahSigned(item)"></p>
+                            <p class="text-[10px] text-slate-500" x-text="formatTime(item.created_at)"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
+
+        function detailApp() {
+            return {
+                viewMode: 'all', // 'income', 'expense', 'all'
+                token: localStorage.getItem('jwt_token'),
+                
+                // Data Mentah
+                allData: [],
+                
+                // State Navigasi
+                currentDateContext: new Date(), // Untuk filter Bulan/Tahun
+                activeDateKey: '', // Format "YYYY-MM-DD" yang sedang ditampilkan
+                
+                isLoading: true,
+
+                init() {
+                    const params = new URLSearchParams(window.location.search);
+                    this.viewMode = params.get('mode') || 'all';
+                    const dateParam = params.get('date'); // Target Deep Link
+
+                    if (!this.token) return window.location.href = 'index.html';
+
+                    // Jika ada parameter date (dari Laporan), set context ke tanggal itu
+                    if (dateParam) {
+                        const target = new Date(dateParam);
+                        if (!isNaN(target)) {
+                            this.currentDateContext = target;
+                            this.activeDateKey = dateParam;
+                        }
+                    }
+
+                    this.fetchData();
+                },
+
+                async fetchData() {
+                    this.isLoading = true;
+                    try {
+                        let endpoint = '/api/transactions';
+                        if (this.viewMode !== 'all') endpoint += `?type=${this.viewMode}`;
+
+                        const res = await fetch(`${API_URL}${endpoint}`, {
+                            headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' }
+                        });
+                        const json = await res.json();
+                        
+                        if (json.data) {
+                            // Sort data terbaru dulu
+                            this.allData = json.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                            
+                            // Jika activeDateKey masih kosong (bukan dari deep link), 
+                            // cari tanggal transaksi paling baru di bulan ini
+                            if (!this.activeDateKey && this.availableDatesInMonth.length > 0) {
+                                this.activeDateKey = this.availableDatesInMonth[0]; // Ambil tanggal terbaru yg ada datanya
+                            }
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                // --- LOGIC NAVIGATION ---
+                
+                changeMonth(delta) {
+                    const newDate = new Date(this.currentDateContext);
+                    newDate.setMonth(newDate.getMonth() + delta);
+                    this.currentDateContext = newDate;
+                    
+                    // Reset active date ke tanggal paling baru di bulan yg baru dipilih
+                    // Supaya user tidak bingung melihat tanggal bulan lalu
+                    this.$nextTick(() => {
+                        if (this.availableDatesInMonth.length > 0) {
+                            this.activeDateKey = this.availableDatesInMonth[0]; 
+                        } else {
+                            this.activeDateKey = ''; // Kosongkan jika bulan ini gak ada data
+                        }
+                    });
+                },
+
+                resetToToday() {
+                    this.currentDateContext = new Date();
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    
+                    // Cek apakah hari ini ada data? Kalau gak ada, cari data terdekat
+                    if (this.allData.some(d => d.created_at.startsWith(todayStr))) {
+                        this.activeDateKey = todayStr;
+                    } else {
+                        // Kalau hari ini kosong, load ulang bulan ini dan ambil data paling akhir
+                        this.fetchData(); 
+                    }
+                },
+
+                navigateDate(direction) {
+                    // direction: -1 (mundur/lama), 1 (maju/baru)
+                    // Note: Array availableDatesInMonth sudah urut dari TERBARU ke TERLAMA
+                    // Jadi index 0 = Tgl 30, Index 1 = Tgl 28...
+                    // Maka "Prev" (Mundur Tanggal) berarti index bertambah (ke arah masa lalu)
+                    // "Next" (Maju Tanggal) berarti index berkurang (ke arah masa depan)
+                    
+                    // TAPI user minta: "Kiri Kanan". 
+                    // Logika umum: Kiri = Mundur (Tgl lebih kecil), Kanan = Maju (Tgl lebih besar).
+                    // Mari kita urutkan availableDatesInMonth secara ASCENDING (Kecil ke Besar) untuk logika navigasi yg lebih mudah dipahami manusia
+                    
+                    const dates = this.getSortedDatesAscending(); 
+                    const currentIndex = dates.indexOf(this.activeDateKey);
+                    
+                    if (currentIndex === -1) return;
+
+                    const newIndex = currentIndex + direction;
+                    if (newIndex >= 0 && newIndex < dates.length) {
+                        this.activeDateKey = dates[newIndex];
+                    }
+                },
+
+                // --- COMPUTED DATA PROPERTIES ---
+
+                // Mengambil semua tanggal unik yang ada transaksinya di BULAN yang dipilih
+                get availableDatesInMonth() {
+                    const targetMonth = this.currentDateContext.getMonth();
+                    const targetYear = this.currentDateContext.getFullYear();
+                    
+                    const dates = new Set();
+                    this.allData.forEach(item => {
+                        const d = new Date(item.created_at);
+                        if (d.getMonth() === targetMonth && d.getFullYear() === targetYear) {
+                            dates.add(item.created_at.split('T')[0]);
+                        }
+                    });
+                    
+                    // Return array sorted DESC (Default)
+                    return Array.from(dates).sort((a, b) => new Date(b) - new Date(a));
+                },
+
+                // Helper khusus untuk navigasi tombol (Ascending: 1, 2, 3...)
+                getSortedDatesAscending() {
+                    return [...this.availableDatesInMonth].sort((a, b) => new Date(a) - new Date(b));
+                },
+
+                get isFirstDate() {
+                    // Tombol Kiri (Mundur) disable jika kita ada di tanggal paling kecil (awal bulan)
+                    const dates = this.getSortedDatesAscending();
+                    return dates.indexOf(this.activeDateKey) <= 0;
+                },
+
+                get isLastDate() {
+                    // Tombol Kanan (Maju) disable jika kita ada di tanggal paling besar (akhir bulan)
+                    const dates = this.getSortedDatesAscending();
+                    return dates.indexOf(this.activeDateKey) >= dates.length - 1;
+                },
+
+                get activeTransactions() {
+                    if (!this.activeDateKey) return [];
+                    return this.allData.filter(item => item.created_at.startsWith(this.activeDateKey));
+                },
+
+                get dailyTotal() {
+                    return this.activeTransactions.reduce((acc, curr) => {
+                        if (this.viewMode === 'all') {
+                            return acc + (curr.type === 'income' ? curr.amount : -curr.amount);
+                        }
+                        return acc + curr.amount;
+                    }, 0);
+                },
+
+                get monthlyTotal() {
+                    // Menghitung total seluruh transaksi di bulan yang dipilih (bukan cuma hari aktif)
+                    const targetMonth = this.currentDateContext.getMonth();
+                    const targetYear = this.currentDateContext.getFullYear();
+                    
+                    return this.allData.reduce((acc, curr) => {
+                        const d = new Date(curr.created_at);
+                        if (d.getMonth() === targetMonth && d.getFullYear() === targetYear) {
+                            if (this.viewMode === 'all') {
+                                return acc + (curr.type === 'income' ? curr.amount : -curr.amount);
+                            }
+                            return acc + curr.amount;
+                        }
+                        return acc;
+                    }, 0);
+                },
+
+                // --- FORMATTERS ---
+                getViewTitle() {
+                    if (this.viewMode === 'income') return 'Rincian Pemasukan';
+                    if (this.viewMode === 'expense') return 'Rincian Pengeluaran';
+                    return 'Mutasi Rekening';
+                },
+                formatMonthYear(dateObj) {
+                    return dateObj.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                },
+                formatDateShort(dateStr) {
+                    if (!dateStr) return "-";
+                    return new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+                },
+                formatTime(dateStr) {
+                    return new Date(dateStr).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                },
+                formatRupiah(num) {
+                    const absNum = Math.abs(num);
+                    const str = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(absNum);
+                    return num < 0 ? `- ${str}` : str;
+                },
+                formatRupiahSigned(item) {
+                    const str = this.formatRupiah(item.amount);
+                    if (this.viewMode === 'all') {
+                        return item.type === 'expense' ? `- ${str}` : `+ ${str}`;
+                    }
+                    return str;
+                },
+                getCategoryIcon(category) {
+                    // Simple Icon generator based on first letter
+                    return category ? category.charAt(0).toUpperCase() : '?';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
