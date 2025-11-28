@@ -107,12 +107,13 @@
         </div>
     </main>
 
-    <script>
+   <script>
         const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
 
         function reportApp() {
             return {
                 token: localStorage.getItem('jwt_token'),
+                username: localStorage.getItem('username') || 'User', // <-- BARIS INI DITAMBAHKAN
                 allTransactions: [],
                 isLoading: false,
                 selectedDate: new Date(), // Default hari ini
@@ -129,6 +130,8 @@
 
                 init() {
                     if (!this.token) return window.location.href = 'index.html';
+                    // Update username jika berubah
+                    this.username = localStorage.getItem('username') || 'User';
                     this.fetchAndCalculate();
                 },
 

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Kontrol Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="adminPanel()">
+
+    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🛡️</span>
+                <h1 class="font-bold tracking-tight">Admin Panel</h1>
+            </div>
+            <button @click="logout" class="text-sm text-red-400 hover:text-white transition">Keluar</button>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-6 py-8 space-y-8">
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-semibold mb-4 text-emerald-400">Tambah User Baru</h2>
+            <form @submit.prevent="createUser" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold">Username</label>
+                    <input type="text" x-model="newUser.username" placeholder="cth: budi" class="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" required>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold">Password</label>
+                    <input type="text" x-model="newUser.password" placeholder="rahasia123" class="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" required>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold">Telegram ID</label>
+                    <input type="number" x-model="newUser.telegram_id" placeholder="cth: 123456789" class="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" required>
+                </div>
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-sm transition h-[38px]">
+                    + Daftarkan
+                </button>
+            </form>
+            <p x-show="message" :class="isError ? 'text-red-400' : 'text-emerald-400'" x-text="message" class="text-xs mt-3"></p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                <h2 class="text-lg font-semibold">Daftar Pengguna</h2>
+                <button @click="fetchUsers" class="text-xs bg-slate-800 px-3 py-1 rounded hover:bg-slate-700">Refresh</button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-400">
+                    <thead class="bg-slate-950 text-xs uppercase font-medium text-slate-500">
+                        <tr>
+                            <th class="px-6 py-3">ID</th>
+                            <th class="px-6 py-3">Username</th>
+                            <th class="px-6 py-3">Role</th>
+                            <th class="px-6 py-3">Telegram ID</th>
+                            <th class="px-6 py-3 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        <template x-for="user in users" :key="user.id">
+                            <tr class="hover:bg-slate-800/50">
+                                <td class="px-6 py-3 font-mono" x-text="user.id"></td>
+                                <td class="px-6 py-3 font-bold text-white" x-text="user.username"></td>
+                                <td class="px-6 py-3">
+                                    <span :class="user.role === 'admin' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'" class="px-2 py-1 rounded text-[10px] uppercase border font-bold" x-text="user.role"></span>
+                                </td>
+                                <td class="px-6 py-3 font-mono" x-text="user.telegram_id"></td>
+                                <td class="px-6 py-3 text-right">
+                                    <button @click="deleteUser(user.id)" class="text-red-500 hover:text-red-400 hover:underline text-xs" x-show="user.role !== 'admin'">Hapus</button>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="users.length === 0">
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-600">Belum ada user lain.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; // API URL
+
+        function adminPanel() {
+            return {
+                token: localStorage.getItem('jwt_token'),
+                users: [],
+                newUser: { username: '', password: '', telegram_id: '' },
+                message: '',
+                isError: false,
+
+                init() {
+                    if (!this.token) window.location.href = 'admin-login.html';
+                    this.fetchUsers();
+                },
+
+                async fetchWithAuth(url, options = {}) {
+                    const headers = {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.token}`,
+                        'ngrok-skip-browser-warning': 'true'
+                    };
+                    const res = await fetch(`${API_URL}${url}`, { ...options, headers });
+                    if (res.status === 401 || res.status === 403) {
+                        localStorage.removeItem('jwt_token');
+                        window.location.href = 'admin-login.html';
+                    }
+                    return res;
+                },
+
+                async fetchUsers() {
+                    const res = await this.fetchWithAuth('/api/admin/users');
+                    const data = await res.json();
+                    if (data.data) this.users = data.data;
+                },
+
+                async createUser() {
+                    this.message = 'Memproses...';
+                    this.isError = false;
+                    
+                    // Convert telegram_id to number
+                    const payload = { ...this.newUser, telegram_id: parseInt(this.newUser.telegram_id) };
+
+                    const res = await this.fetchWithAuth('/api/admin/users', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        this.message = '✅ User berhasil dibuat!';
+                        this.newUser = { username: '', password: '', telegram_id: '' };
+                        this.fetchUsers(); // Refresh tabel
+                    } else {
+                        this.isError = true;
+                        this.message = `❌ Gagal: ${data.error || 'Terjadi kesalahan'}`;
+                    }
+                },
+
+                async deleteUser(id) {
+                    if(!confirm('Yakin hapus user ini? Data keuangannya juga akan hilang permanen.')) return;
+
+                    const res = await this.fetchWithAuth(`/api/admin/users/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        this.fetchUsers();
+                    } else {
+                        alert('Gagal menghapus user');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
