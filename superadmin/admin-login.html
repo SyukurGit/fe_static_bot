@@ -14,10 +14,15 @@
 
     <div class="w-full max-w-sm p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
         <div class="text-center mb-8">
-            <div class="w-12 h-12 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center mx-auto mb-3 text-2xl">🛡️</div>
-            <h1 class="text-xl font-bold text-white">A76 Production</h1>
-            <p class="text-xs text-slate-500">Area terlarang. Khusus pemilik sistem.</p>
-        </div>
+    <div class="w-12 h-12 rounded-xl overflow-hidden mx-auto mb-3 shadow-md">
+        <img src="logobot.png" 
+             alt="Logo" 
+             class="w-full h-full object-cover">
+    </div>
+
+    <h1 class="text-xl font-bold text-white">A76 Labs. Area</h1>
+    <p class="text-xs text-slate-500">Area terlarang. Khusus pemilik sistem.</p>
+</div>
 
         <form @submit.prevent="login" class="space-y-4">
             <div>
