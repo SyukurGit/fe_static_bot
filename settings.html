@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Budget - Syukur Finance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="settingsApp()">
+
+    <nav class="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
+        <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                <span>Dashboard</span>
+            </a>
+            <h1 class="font-bold tracking-tight">Pengaturan Budget</h1>
+            <div class="w-20"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-xl mx-auto px-4 py-8 space-y-8">
+        
+        <div class="text-center space-y-2">
+            <div class="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto text-2xl mb-4">🚨</div>
+            <h2 class="text-xl font-bold text-white">Daily Budget Alert</h2>
+            <p class="text-sm text-slate-400">Bot akan memarahi kamu jika jajan melebihi batas.</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl"></div>
+
+            <form @submit.prevent="saveSettings" class="space-y-6 relative z-10">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Batas Pengeluaran Harian (Rp)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 font-bold">Rp</span>
+                        <input 
+                            type="number" 
+                            x-model="form.daily_limit" 
+                            placeholder="Contoh: 100000" 
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition placeholder-slate-600 font-mono"
+                        >
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-2">Set ke 0 untuk mematikan fitur ini.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Pesan Peringatan Bot</label>
+                    <textarea 
+                        x-model="form.alert_message" 
+                        rows="3" 
+                        placeholder="Contoh: Woy boros! Inget cicilan motor!" 
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition placeholder-slate-600 text-sm"
+                    ></textarea>
+                    <p class="text-[10px] text-slate-500 mt-2">Pesan ini akan muncul otomatis di Telegram.</p>
+                </div>
+
+                <button 
+                    type="submit" 
+                    :disabled="isLoading"
+                    class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-amber-900/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <span x-show="!isLoading">Simpan Pengaturan</span>
+                    <span x-show="isLoading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                </button>
+
+                <div x-show="message" x-transition class="text-center p-3 rounded-lg text-xs font-medium" :class="isError ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'">
+                    <span x-text="message"></span>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4 flex gap-3 items-start">
+            <span class="text-lg">💡</span>
+            <div>
+                <h4 class="text-sm font-semibold text-slate-200">Tips Hemat</h4>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                    Gunakan kata-kata yang "menohok" di pesan alert supaya kamu benar-benar sadar saat mau jajan lagi.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; 
+
+        function settingsApp() {
+            return {
+                token: localStorage.getItem('jwt_token'),
+                form: { daily_limit: '', alert_message: '' },
+                isLoading: false,
+                message: '',
+                isError: false,
+
+                init() {
+                    if (!this.token) window.location.href = 'index.html';
+                    this.fetchCurrentSettings();
+                },
+
+                async fetchWithAuth(url, options = {}) {
+                    const headers = {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.token}`,
+                        'ngrok-skip-browser-warning': 'true'
+                    };
+                    const res = await fetch(`${API_URL}${url}`, { ...options, headers });
+                    if (res.status === 401) window.location.href = 'index.html';
+                    return res;
+                },
+
+                async fetchCurrentSettings() {
+                    const res = await this.fetchWithAuth('/api/user/settings');
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.form.daily_limit = data.daily_limit;
+                        this.form.alert_message = data.alert_message;
+                    }
+                },
+
+                async saveSettings() {
+                    this.isLoading = true;
+                    this.message = '';
+                    this.isError = false;
+
+                    // Convert limit to integer
+                    const payload = {
+                        daily_limit: parseInt(this.form.daily_limit) || 0,
+                        alert_message: this.form.alert_message
+                    };
+
+                    try {
+                        const res = await this.fetchWithAuth('/api/user/settings', {
+                            method: 'PUT',
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await res.json();
+
+                        if (res.ok) {
+                            this.message = '✅ ' + data.message;
+                        } else {
+                            throw new Error(data.error || 'Gagal menyimpan');
+                        }
+                    } catch (e) {
+                        this.isError = true;
+                        this.message = '❌ ' + e.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
