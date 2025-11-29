@@ -3,158 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Eksekutif - Syukur Finansial</title>
+    <title>Tentang Syukur MoneyBot</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link rel="icon" type="image/png" href="images1.png"> 
+    <link rel="icon" type="image/png" href="images1.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        [x-cloak] { display: none !important; } 
         body { font-family: 'Inter', sans-serif; }
-        /* Animasi kedip halus saat data update */
-        @keyframes pulse-green {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        .gradient-text {
+            background: linear-gradient(to right, #34d399, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .live-indicator { animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 selection:bg-emerald-500/30" x-data="mainDashboard()">
+<body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen">
 
-    <div x-show="!isLoggedIn" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 bg-opacity-90 backdrop-blur-sm">
-        <div class="w-full max-w-sm p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
-            <h2 class="text-xl font-bold text-center mb-4 text-emerald-400">Login Akses</h2>
-            <form @submit.prevent="login" class="space-y-4">
-                <input type="text" x-model="loginForm.username" placeholder="Username" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:border-emerald-500 focus:outline-none transition">
-                <input type="password" x-model="loginForm.password" placeholder="Password" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:border-emerald-500 focus:outline-none transition">
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg transition shadow-lg shadow-emerald-900/20">Masuk Dashboard</button>
-                <p x-show="loginError" x-text="loginError" class="text-red-400 text-xs text-center"></p>
-            </form>
-        </div>
-    </div>
-
-    <nav class="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-bold text-white shadow-lg shadow-emerald-500/20">S</div>
-                    <span class="font-semibold tracking-tight text-slate-100">Syukur Finance</span>
-                </div>
-                <div class="flex items-center gap-6">
-                    <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator"></span>
-                        <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Live Sync</span>
-                    </div>
-
-                    <a href="laporan.html" class="text-sm font-medium text-white hover:text-amber-300 transition mr-4">
-    Laporan Pengeluaran
-</a>
-
-                    <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
-                        <a href="settings.html" class="text-sm font-medium text-slate-400 hover:text-amber-300 transition">⚙️ Atur Limit</a>
-
-                        <button @click="logout" class="text-sm font-medium text-red-400 hover:text-red-300 transition">Keluar</button>
-                    </div>
-                </div>
+    <nav class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/50">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 font-bold text-lg">
+                <span>Dompet<span class="text-emerald-400">Pintar</span><span>Bot</span></span>
             </div>
+            <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-full text-sm font-medium transition border border-slate-700">
+                Login User &rarr;
+            </a>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" x-show="isLoggedIn" x-cloak>
+    <header class="flex-1 flex flex-col items-center justify-center text-center px-6 py-20 relative overflow-hidden">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10"></div>
+
+        <div class="mb-6 relative group cursor-pointer">
+    <div class="w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/10 border border-slate-700 group-hover:scale-105 transition duration-500 overflow-hidden">
         
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-    <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">
-            Halo, <span x-text="username" class="text-emerald-400 capitalize"></span> 👋
-        </h1>
-        <p class="text-slate-400 text-sm mt-1">Ini ringkasan keuangan kamu hari ini.</p>
+        <!-- Ganti emoji jadi gambar -->
+        <img src="logobot.png" alt="Logo" class="max-w-full max-h-full object-contain">
+        
     </div>
-    <div class="md:hidden flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator"></span>
-        <span class="text-xs text-slate-500">Live Updating...</span>
+
+    <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded-full">
+        Telegram
     </div>
 </div>
 
+
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+            Kelola dan Pantau Arus Keuangan <br>
+            <span class="gradient-text">Tanpa Ribet</span>
+        </h1>
+        
+        <p class="text-slate-400 max-w-lg text-lg mb-8 leading-relaxed">
+            Catat pemasukan dan pengeluaran langsung dari Telegram. 
+            Efisien, cepat, dan Mudah.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+            <a href="https://t.me/DompetPintar_A76Labs_Bot" target="_blank" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-8 py-3.5 rounded-xl font-bold transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.198-.054-.306-.346-.106l-6.4 4.022-2.76-.848c-.602-.187-.61-.6.125-.892l10.78-4.156c.5-.187.943.128.808.815z"/></svg>
+                Chat Bot Sekarang
+            </a>
+            <a href="index.html" class="bg-slate-900 border border-slate-800 hover:border-slate-600 text-slate-300 px-8 py-3.5 rounded-xl font-semibold transition">
+                Masuk Dashboard
+            </a>
+        </div>
+    </header>
+
+    <section class="max-w-5xl mx-auto px-6 py-16">
+        <div class="text-center mb-12">
+            <h2 class="text-2xl font-bold text-white">Cara Daftar dan Pakai</h2>
+            <p class="text-sm text-slate-500 mt-2">Cukup 3 langkah mudah untuk mulai.</p>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <a href="detail.html?mode=income" class="group relative overflow-hidden bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all hover:shadow-2xl hover:shadow-emerald-900/10 cursor-pointer">
-                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition duration-500">
-                    <svg class="w-16 h-16 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                </div>
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Pemasukan</p>
-                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-emerald-400 transition" x-text="formatRupiah(summary.total_income)"></h3>
-                <div class="mt-4 flex items-center gap-2 text-emerald-500 text-xs font-medium bg-emerald-500/10 w-fit px-2 py-1 rounded-full">
-                    <span>↗ Rincian Masuk</span>
-                </div>
-            </a>
-
-            <a href="detail.html?mode=expense" class="group relative overflow-hidden bg-slate-900 border border-slate-800 hover:border-rose-500/50 rounded-2xl p-6 transition-all hover:shadow-2xl hover:shadow-rose-900/10 cursor-pointer">
-                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition duration-500">
-                    <svg class="w-16 h-16 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
-                </div>
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Pengeluaran</p>
-                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-rose-400 transition" x-text="formatRupiah(summary.total_expense)"></h3>
-                <div class="mt-4 flex items-center gap-2 text-rose-500 text-xs font-medium bg-rose-500/10 w-fit px-2 py-1 rounded-full">
-                    <span>↘ Rincian Keluar</span>
-                </div>
-            </a>
-
-            <a href="detail.html?mode=all" class="group relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 hover:border-sky-500/50 rounded-2xl p-6 shadow-lg transition-all hover:shadow-sky-900/20">
-                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                    <svg class="w-16 h-16 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                </div>
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Saldo Bersih</p>
-                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-sky-400 transition" x-text="formatRupiah(summary.balance)"></h3>
-                <div class="mt-4 flex items-center gap-2 text-sky-500 text-xs font-medium bg-sky-500/10 w-fit px-2 py-1 rounded-full">
-                    <span>↔ Mutasi Rekening</span>
-                </div>
-            </a>
-        </div>
-
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-semibold text-white">Tren Cashflow 30 Hari</h3>
-                <div class="flex items-center gap-2 text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Masuk</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span>Keluar</span>
-                </div>
-            </div>
-            <div class="relative h-72 w-full">
-                <canvas id="mainChart"></canvas>
-            </div>
-        </div>
-
-    </main>
-
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 mt-10">
-        <div class="border border-slate-800 rounded-2xl bg-slate-900/80 p-4 flex items-center justify-between gap-4">
-            <div>
-                <p class="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-1">
-                    Bayarin Teh Dingin ☕ Minimal
-                </p>
-                <p class="text-sm text-slate-300">
-Yang pakek ini, Wajib support Dev, yang ga support, ga berkah😎                 </p>
-                <p class="text-xs text-slate-500 mt-1">
-                    Klik QR di samping buat buka gambar Qris Full
-                </p>
-            </div>
-
-            <a href="qris.jpeg" target="_blank" rel="noopener noreferrer" class="shrink-0 group">
-                <img
-                    src="qris.jpeg"
-                    alt="Buy Me A Coffee"
-                    class="w-20 h-20 rounded-xl border border-slate-700 group-hover:border-emerald-400 transition object-cover"
-                >
-                <p class="text-[10px] text-center text-slate-500 mt-1 group-hover:text-emerald-400">
-                    Buka QR full
-                </p>
-            </a>
-        </div>
+           <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-emerald-500/30 transition group">
+    <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition">
+        1️⃣
     </div>
 
-    <script src="app.js"></script>
-</body>
-</html>
+    <h3 class="font-bold text-white mb-2">Daftar Akun</h3>
+
+    <p class="text-sm text-slate-400">
+        Lakukan <span class="text-white font-semibold">ping</span> ke bot 
+        <a href="https://t.me/DompetPintar_A76Labs_Bot" target="_blank" rel="noopener noreferrer"
+           class="text-emerald-400 font-mono hover:underline">
+            @DompetPintar_A76Labs_Bot
+        </a>
+        untuk mendapatkan instruksi awal.
+    </p>
+
+    <p class="text-sm text-slate-400 mt-2">
+        Setelah itu, kirimkan data Anda ke 
+        <a href="https://t.me/unxpctedd" target="_blank" rel="noopener noreferrer"
+           class="text-emerald-400 font-mono hover:underline">
+            @unxpctedd
+        </a>
+        di Telegram untuk mendaftarkan ID Telegram Anda ke database.
+    </p>
+</div>
+
+            
+
+          <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-blue-500/30 transition group">
+    <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:bg-blue-500/20 group-hover:text-blue-400 transition">
+        2️⃣
+    </div>
+
+    <h3 class="font-bold text-white mb-2">Chat Bot</h3>
+
+    <p class="text-sm text-slate-400">
+        Ketik 
+        <code class="bg-slate-950 px-1 py-0.5 rounded text-xs border border-slate-700">+50rb Gaji</code>
+        atau 
+        <code class="bg-slate-950 px-1 py-0.5 rounded text-xs border border-slate-700">-20rb Makan</code>
+        langsung di chat bot untuk mencatat transaksi.
+    </p>
+
+    <p class="text-sm text-slate-400 mt-2">
+        Ketik 
+        <code class="bg-slate-950 px-1 py-0.5 rounded text-xs border border-slate-700">/help</code> 
+        untuk melihat panduan lengkap penggunaan bot di Telegram.
+    </p>
+</div>
+
+           <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-purple-500/30 transition group">
+    <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:bg-purple-500/20 group-hover:text-purple-400 transition">
+        3️⃣
+    </div>
+
+    <h3 class="font-bold text-white mb-2">Pantau Web</h3>
+
+    <p class="text-sm text-slate-400">
+        Lakukan Login ke dashboard web untuk melihat Pantauan grafik, analisa bulanan, dan export laporan Excel.
+    </p>
+
+    <p class="text-sm text-slate-400 mt-2">
+        Lakukan 
+        <a href="https://your-login-link.com" target="_blank" rel="noopener noreferrer"
+           class="text-purple-400 font-semibold hover:underline">
+           Login
+        </a> 
+        ke dashboard Anda untuk mulai memantau transaksi.
+    </p>
+</div>
+
+
+
+    </section>
+
+    <footer class="border-t border-slate-900 bg-slate-950 pt-12 pb-8">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col items-center text-center">
+            
+            <div class="mb-6">
+    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">
+        Developed By
+    </p>
+
+   <div class="flex items-center justify-center gap-4">
+
+    <!-- Logo Image (rectangle style) -->
+    <div class="w-28 h-20 rounded-xl overflow-hidden shadow-lg">
+        <img src="a76.png" alt="A76 Labs Logo" class="w-full h-full object-cover">
+    </div>
+
+    <!-- Developer Info -->
+    <div class="text-left">
+        
+        <!-- A76 Labs clickable -->
+        <a href="https://t.me/unxpctedd" 
+           target="_blank" 
+           class="text-base font-bold text-white leading-tight hover:underline hover:text-green-500">
+            A76 Labs.
+        </a>
+
+        <!-- Dev Name -->
+        <p class="text-sm text-slate-400 leading-tight mt-1">
+            Dev:
+            <a href="https://t.me/unxpctedd" 
+               target="_blank" 
+               class="text-emerald-500 hover:underline ml-1">
+                @unxpctedd
+            </a>
+        </p>
+    </div>
+
+</div>
+
+
+
+
+</div>
+
+
+            <div class="w-full h-px bg-slate-900 my-6"></div>
+
+            <p class="text-xs text-slate-600">
+                &copy; 2025 DompetPintarBot. All rights reserved. <br>
+                <span class="opacity-50">Hak Cipta dimiliki A76 Labs.</span>
+            </p>
+        </div>
+    </footer>
 
 </body>
 </html>
