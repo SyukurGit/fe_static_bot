@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
-    <link rel="icon" type="image/png" href="images1.png">
+    <link rel="icon" type="image/png" href="a76trans.png">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen" x-data="inputApp()">
 
@@ -182,9 +182,9 @@
 
                 updateSuggestions() {
                     if(this.form.type === 'income') {
-                        this.suggestions = ['Gaji', 'Bonus', 'Jualan', 'Hadiah'];
+                        this.suggestions = ['Gaji', 'Cairr','Bonus', ];
                     } else {
-                        this.suggestions = ['Makan', 'Jajan', 'Bensin', 'Belanja', 'Tagihan'];
+                        this.suggestions = ['Ngopi', 'Makan', 'Surya', ];
                     }
                 },
 
@@ -270,7 +270,7 @@
                 },
 
                 async deleteTransaction(id) {
-                    if (!confirm("Yakin hapus data ini?")) return;
+                    if (!confirm("Yakin hapus data ini, karna kesalahan input?")) return;
 
                     try {
                         const res = await fetch(`${API_URL}/api/transactions/${id}`, {
