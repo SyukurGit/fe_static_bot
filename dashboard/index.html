@@ -11,7 +11,6 @@
     <style>
         [x-cloak] { display: none !important; } 
         body { font-family: 'Inter', sans-serif; }
-        /* Animasi kedip halus saat data update */
         @keyframes pulse-green {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
@@ -21,138 +20,148 @@
 </head>
 <body class="bg-slate-950 text-slate-100 selection:bg-emerald-500/30" x-data="mainDashboard()">
 
-   <div x-show="!isLoggedIn" x-cloak
-    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 bg-opacity-90 backdrop-blur-sm">
+    <!-- Modal Login -->
+    <div x-show="!isLoggedIn" x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 bg-opacity-90 backdrop-blur-sm">
+        <div class="w-full max-w-sm p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
+            <h2 class="text-xl font-bold text-center text-blue-500 mb-3">
+                Panel Login Akses User
+            </h2>
 
-    <div class="w-full max-w-sm p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
+            <div class="text-center mb-4">
+                <span class="font-bold text-lg text-white">
+                    Dompet<span class="text-emerald-400">Pintar</span>Bot
+                </span>
+            </div>
 
-        <!-- Judul Login -->
-        <h2 class="text-xl font-bold text-center text-blue-500 mb-3">
-            Panel Login Akses User
-        </h2>
+            <form @submit.prevent="login" class="space-y-4">
+                <input
+                    type="text"
+                    x-model="loginForm.username"
+                    placeholder="Username"
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 
+                           focus:border-emerald-500 focus:outline-none transition">
 
-        <!-- Branding Bot -->
-        <div class="text-center mb-4">
-            <span class="font-bold text-lg text-white">
-                Dompet<span class="text-emerald-400">Pintar</span>Bot
-            </span>
+                <input
+                    type="password"
+                    x-model="loginForm.password"
+                    placeholder="Password"
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 
+                           focus:border-emerald-500 focus:outline-none transition">
+
+                <button
+                    type="submit"
+                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg 
+                           transition shadow-lg shadow-emerald-900/20">
+                    Masuk Dashboard
+                </button>
+
+                <p x-show="loginError" x-text="loginError" class="text-red-400 text-xs text-center"></p>
+
+                <p class="text-center text-xs text-slate-400 mt-1">
+                    Login Superadmin?
+                    <a
+                        href="https://www.dompet-pintar.work.gd/superadmin/admin-login.html"
+                        class="text-emerald-400 hover:text-emerald-300 underline">
+                        klik di sini
+                    </a>
+                </p>
+            </form>
         </div>
-
-        <form @submit.prevent="login" class="space-y-4">
-
-            <input
-                type="text"
-                x-model="loginForm.username"
-                placeholder="Username"
-                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 
-                       focus:border-emerald-500 focus:outline-none transition"
-            >
-
-            <input
-                type="password"
-                x-model="loginForm.password"
-                placeholder="Password"
-                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 
-                       focus:border-emerald-500 focus:outline-none transition"
-            >
-
-            <button
-                type="submit"
-                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg 
-                       transition shadow-lg shadow-emerald-900/20"
-            >
-                Masuk Dashboard
-            </button>
-
-            <!-- Error -->
-            <p x-show="loginError" x-text="loginError" class="text-red-400 text-xs text-center"></p>
-
-            <!-- Link Superadmin -->
-            <p class="text-center text-xs text-slate-400 mt-1">
-                Login Superadmin?
-                <a
-                    href="https://www.dompet-pintar.work.gd/superadmin/admin-login.html"
-                    class="text-emerald-400 hover:text-emerald-300 underline"
-                >
-                    klik di sini
-                </a>
-            </p>
-
-        </form>
     </div>
-</div>
 
-
-
+    <!-- Navbar -->
     <nav class="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
 
-            <!-- Kiri: Logo + Nama Bot -->
-           <div class="flex items-center gap-3">
-    <img src="croplogobot.png"
-        alt="Logo"
-        class="w-12 h-12 rounded-lg object-cover bg-slate-900 shadow-md shadow-emerald-500/20">
-
-    <span class="font-bold text-lg text-white">
-        Dompet<span class="text-emerald-400">Pintar</span>Bot
-    </span>
-</div>
-
-
-            <!-- Kanan: Menu -->
-            <div class="flex items-center gap-6">
-
-                <!-- Live Sync -->
-                <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 ">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator "></span>
-                    <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Live Sync</span>
+                <!-- Logo + Nama Bot -->
+                <div class="flex items-center gap-3">
+                    <img src="croplogobot.png"
+                        alt="Logo"
+                        class="w-12 h-12 rounded-lg object-cover bg-slate-900 shadow-md shadow-emerald-500/20">
+                    <span class="font-bold text-lg text-white">
+                        Dompet<span class="text-emerald-400">Pintar</span>Bot
+                    </span>
                 </div>
 
-                <!-- Laporan -->
-                <a href="laporan.html"
-                   class="text-sm font-medium text-white hover:text-amber-300 transition">
-                    Laporan Pengeluaran
-                </a>
+                <!-- Menu Kanan -->
+                <div class="flex items-center gap-6">
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator"></span>
+                        <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Live Sync</span>
+                    </div>
 
-                <!-- Settings & Logout -->
-                <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
-                    <a href="settings.html"
-                       class="text-sm font-medium text-slate-400 hover:text-amber-300 transition">
-                        ⚙️ Atur Limit
+                    <a href="laporan.html"
+                       class="text-sm font-medium text-white hover:text-amber-300 transition">
+                        Laporan Pengeluaran
                     </a>
 
-                    <button @click="logout"
-                        class="text-sm font-medium text-red-400 hover:text-red-300 transition flex items-center gap-4 border-l border-slate-800 pl-6">
-                        logout
-                    </button>
+                    <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
+                        <a href="settings.html"
+                           class="text-sm font-medium text-slate-400 hover:text-amber-300 transition">
+                            ⚙️ Atur Limit
+                        </a>
+
+                        <button @click="logout"
+                            class="text-sm font-medium text-red-400 hover:text-red-300 transition">
+                            Logout
+                        </button>
+                    </div>
                 </div>
 
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-
+    <!-- Main -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" x-show="isLoggedIn" x-cloak>
+
+        <!-- 🔥 Aksi Cepat: Tombol Input Transaksi -->
         
+        <!-- Header Salam -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-    <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">
-            Halo, <span x-text="username" class="text-emerald-400 capitalize"></span> 👋
-        </h1>
-        <p class="text-slate-400 text-sm mt-1">Ini ringkasan keuangan Bos muda hari ini.</p>
-    </div>
-    <div class="md:hidden flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator"></span>
-        <span class="text-xs text-slate-500">Live Updating...</span>
-    </div>
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">
+                    Halo, <span x-text="username" class="text-emerald-400 capitalize"></span> 👋
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">Ini ringkasan keuangan Bos muda hari ini.</p>
+            </div>
+            <div class="md:hidden flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator"></span>
+                <span class="text-xs text-slate-500">Live Updating...</span>
+            </div>
+        </div>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+    <p class="text-sm text-slate-400">
+        input <span class="text-emerald-400 font-semibold">pemasukan</span> atau 
+        <span class="text-rose-400 font-semibold">pengeluaran</span> baru? 
+        Bisa Gunakan Web ini atau Via Bot Telegram 
+        <a href="https://t.me/DompetPintar_A76Labs_Bot" 
+           target="_blank" 
+           class="text-emerald-400 font-semibold hover:text-emerald-200 ">
+            @DompetPintar_A76Labs_Bot
+        </a>.
+    </p>
+
+    <a href="#"
+       class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-900 
+              text-sm font-semibold text-white shadow-lg shadow-emerald-900/30">
+        <span class="mr-2 text-base">＋</span>
+        Input Pemasukan / Pengeluaran
+    </a>
 </div>
 
+
+
+        <!-- Kartu Ringkasan -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <a href="detail.html?mode=income" class="group relative overflow-hidden bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all hover:shadow-2xl hover:shadow-emerald-900/10 cursor-pointer">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition duration-500">
-                    <svg class="w-16 h-16 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    <svg class="w-16 h-16 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
                 </div>
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Pemasukan</p>
                 <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-emerald-400 transition" x-text="formatRupiah(summary.total_income)"></h3>
@@ -163,7 +172,9 @@
 
             <a href="detail.html?mode=expense" class="group relative overflow-hidden bg-slate-900 border border-slate-800 hover:border-rose-500/50 rounded-2xl p-6 transition-all hover:shadow-2xl hover:shadow-rose-900/10 cursor-pointer">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition duration-500">
-                    <svg class="w-16 h-16 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+                    <svg class="w-16 h-16 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                    </svg>
                 </div>
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Pengeluaran</p>
                 <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-rose-400 transition" x-text="formatRupiah(summary.total_expense)"></h3>
@@ -174,7 +185,9 @@
 
             <a href="detail.html?mode=all" class="group relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 hover:border-sky-500/50 rounded-2xl p-6 shadow-lg transition-all hover:shadow-sky-900/20">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                    <svg class="w-16 h-16 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    <svg class="w-16 h-16 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
                 </div>
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Saldo Bersih</p>
                 <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-sky-400 transition" x-text="formatRupiah(summary.balance)"></h3>
@@ -184,6 +197,7 @@
             </a>
         </div>
 
+        <!-- Chart -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-semibold text-white">Tren Cashflow 30 Hari</h3>
@@ -199,7 +213,7 @@
 
     </main>
 
-
+    <!-- QRIS + Contact Dev -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 mt-10">
         <div class="border border-slate-800 rounded-2xl bg-slate-900/80 p-4 flex items-center justify-between gap-4">
             <div>
@@ -207,7 +221,8 @@
                     Support Sanger Dingin ☕ Segelas
                 </p>
                 <p class="text-sm text-slate-300">
-Yang pakek ini, Wajib support Dev, yang ga support, ga akan jadi bos muda😎                 </p>
+                    Yang pakek ini, Wajib support Dev, yang ga support, ga akan jadi bos muda😎
+                </p>
                 <p class="text-xs text-slate-500 mt-1">
                     Klik QR di samping buat buka gambar Qris Full
                 </p>
@@ -217,18 +232,80 @@ Yang pakek ini, Wajib support Dev, yang ga support, ga akan jadi bos muda😎   
                 <img
                     src="qris.jpeg"
                     alt="Buy Me A Coffee"
-                    class="w-20 h-20 rounded-xl border border-slate-700 group-hover:border-emerald-400 transition object-cover"
-                >
+                    class="w-20 h-20 rounded-xl border border-slate-700 group-hover:border-emerald-400 transition object-cover">
                 <p class="text-[10px] text-center text-slate-500 mt-1 group-hover:text-emerald-400">
                     Buka QR full
                 </p>
             </a>
         </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+                <p class="text-sm text-slate-400">
+                    Jika Anda punya <span class="text-emerald-400 font-semibold">saran</span> atau 
+                    <span class="text-emerald-400 font-semibold">pertanyaan</span>, silakan hubungi Dev di Telegram:
+                    <a href="https://t.me/unxpctedd" target="_blank" class="text-emerald-400 hover:text-emerald-300 underline ml-1">
+                        @unxpctedd
+                    </a>
+                </p>
+            </div>
+        </div>
     </div>
 
-    <script src="app.js"></script>
-</body>
-</html>
 
+    <footer class="border-t border-slate-900 bg-slate-950 pt-12 pb-8">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col items-center text-center">
+            
+            <div class="mb-6">
+    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">
+        Developed By
+    </p>
+
+   <div class="flex items-center justify-center gap-4">
+
+    <!-- Logo Image (rectangle style) -->
+    <div class="w-28 h-20 rounded-xl overflow-hidden shadow-lg">
+        <img src="a76.png" alt="A76 Labs Logo" class="w-full h-full object-cover">
+    </div>
+
+    <!-- Developer Info -->
+    <div class="text-left">
+        
+        <!-- A76 Labs clickable -->
+        <a href="https://t.me/unxpctedd" 
+           target="_blank" 
+           class="text-base font-bold text-white leading-tight hover:underline hover:text-green-500">
+            A76 Labs.
+        </a>
+
+        <!-- Dev Name -->
+        <p class="text-sm text-slate-400 leading-tight mt-1">
+            Dev:
+            <a href="https://t.me/unxpctedd" 
+               target="_blank" 
+               class="text-emerald-500 hover:underline ml-1">
+                @unxpctedd
+            </a>
+        </p>
+    </div>
+
+</div>
+
+
+
+
+</div>
+
+
+            <div class="w-full h-px bg-slate-900 my-6"></div>
+
+            <p class="text-xs text-slate-600">
+                &copy; 2025 DompetPintarBot. All rights reserved. <br>
+                <span class="opacity-50">Hak Cipta dimiliki A76 Labs.</span>
+            </p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
 </body>
 </html>
