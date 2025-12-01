@@ -24,8 +24,6 @@
     <div x-show="!isLoggedIn" x-cloak
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 bg-opacity-90 backdrop-blur-sm">
         <div class="w-full max-w-sm p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
-            
-
             <div class="text-center mb-4">
                 <span class="font-bold text-lg text-white">
                     Dompet<span class="text-emerald-400">Pintar</span>Bot
@@ -69,27 +67,44 @@
     </div>
 
     <!-- Navbar -->
-    <nav class="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+   <!-- Navbar -->
+<nav class="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md"
+     x-data="{ mobileMenuOpen: false }">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
 
-                <!-- Logo + Nama Bot -->
-                <div class="flex items-center gap-3">
-                    <img src="croplogobot.png"
-                        alt="Logo"
-                        class="w-12 h-12 rounded-lg object-cover bg-slate-900 shadow-md shadow-emerald-500/20">
-                    <span class="font-bold text-lg text-white">
-                        Dompet<span class="text-emerald-400">Pintar</span>Bot
+            <!-- Logo + Nama Bot -->
+            <div class="flex items-center gap-3">
+                <img src="croplogobot.png"
+                     alt="Logo"
+                     class="w-12 h-12 rounded-lg object-cover bg-slate-900 shadow-md shadow-emerald-500/20">
+                <span class="font-bold text-lg text-white">
+                    Dompet<span class="text-emerald-400">Pintar</span>Bot
+                </span>
+            </div>
+
+            <!-- Kanan -->
+            <div class="flex items-center gap-3 relative">
+
+                <!-- Live Sync (mobile & desktop) -->
+                <!-- versi mobile -->
+                <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 md:hidden">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator"></span>
+                    <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">
+                        Live Sync
                     </span>
                 </div>
 
-                <!-- Menu Kanan -->
-                <div class="flex items-center gap-6">
-                    <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator"></span>
-                        <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Live Sync</span>
-                    </div>
+                <!-- versi desktop -->
+                <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 live-indicator"></span>
+                    <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">
+                        Live Sync
+                    </span>
+                </div>
 
+                <!-- Menu desktop (link biasa) -->
+                <div class="hidden md:flex items-center gap-6">
                     <a href="laporan.html"
                        class="text-sm font-medium text-white hover:text-amber-300 transition">
                         Laporan Pengeluaran
@@ -101,22 +116,66 @@
                             ⚙️ Atur Limit
                         </a>
 
-                        <button @click="logout "
-                            class="text-sm font-medium text-red-400 hover:text-red-300 transition flex items-center gap-4 border-l border-slate-800 pl-6">
+                        <button @click="logout"
+                            class="text-sm font-medium text-red-400 hover:text-red-300 transition">
                             Logout
                         </button>
                     </div>
                 </div>
 
+                <!-- Tombol burger (hanya mobile) -->
+                <button
+                    type="button"
+                    class="md:hidden inline-flex items-center justify-center p-2 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800/70 focus:outline-none"
+                    @click="mobileMenuOpen = !mobileMenuOpen">
+                    <!-- ikon burger -->
+                    <svg x-show="!mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <!-- ikon close -->
+                    <svg x-show="mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <!-- Dropdown menu mobile -->
+                <div
+                    x-show="mobileMenuOpen"
+                    x-transition
+                    @click.outside="mobileMenuOpen = false"
+                    class="md:hidden absolute right-0 top-12 mt-2 w-48 rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-2 z-50">
+
+                    <a href="laporan.html"
+                       class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-800">
+                        Laporan Pengeluaran
+                    </a>
+
+                    <a href="settings.html"
+                       class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-800">
+                        ⚙️ Atur Limit
+                    </a>
+
+                    <button
+                        @click="logout; mobileMenuOpen = false"
+                        class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-800">
+                        Logout
+                    </button>
+                </div>
+
             </div>
+
         </div>
-    </nav>
+    </div>
+</nav>
+
 
     <!-- Main -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" x-show="isLoggedIn" x-cloak>
 
-        <!-- 🔥 Aksi Cepat: Tombol Input Transaksi -->
-        
         <!-- Header Salam -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
@@ -131,64 +190,75 @@
             </div>
         </div>
 
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-    <p class="text-sm text-slate-400">
-        input <span class="text-emerald-400 font-semibold">pemasukan</span> atau 
-        <span class="text-rose-400 font-semibold">pengeluaran</span> baru? 
-        Bisa Gunakan Web ini atau Via Bot Telegram 
-        <a href="https://t.me/DompetPintar_A76Labs_Bot" 
-           target="_blank" 
-           class="text-emerald-400 font-semibold hover:text-emerald-200 hover:underline ">
-            @DompetPintar_A76Labs_Bot
-        </a>.
-    </p>
+        <!-- Info + Tombol Input -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-2">
+            <p class="text-sm text-slate-400 leading-relaxed">
+                input <span class="text-emerald-400 font-semibold">pemasukan</span> atau 
+                <span class="text-rose-400 font-semibold">pengeluaran</span>? 
+                Bisa via web atau via Bot Telegram juga di
+                <a href="https://t.me/DompetPintar_A76Labs_Bot" 
+                   target="_blank" 
+                   class="text-emerald-400 font-semibold hover:text-emerald-200 hover:underline">
+                    @DompetPintar_A76Labs_Bot
+                </a>.
+            </p>
 
-    <a href="input.html"
-       class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-900 
-              text-sm font-semibold text-white shadow-lg shadow-emerald-900/30">
-        <span class="mr-2 text-base">＋</span>
-        Input Pemasukan / Pengeluaran
-    </a>
-</div>
-
-
+            <a href="input.html"
+               class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-900 
+                      text-sm font-semibold text-white shadow-lg shadow-emerald-900/30 w-full md:w-auto">
+                <span class="mr-2 text-base">＋</span>
+                Input Pemasukan / Pengeluaran
+            </a>
+        </div>
 
         <!-- Kartu Ringkasan -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <a href="detail.html?mode=income" class="group relative overflow-hidden bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all hover:shadow-2xl hover:shadow-emerald-900/10 cursor-pointer">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+            <!-- Pemasukan -->
+            <a href="detail.html?mode=income"
+               class="group relative overflow-hidden bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all hover:shadow-2xl hover:shadow-emerald-900/10 cursor-pointer">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition duration-500">
                     <svg class="w-16 h-16 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                     </svg>
                 </div>
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Pemasukan</p>
-                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-emerald-400 transition" x-text="formatRupiah(summary.total_income)"></h3>
+                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-emerald-400 transition"
+                    x-text="formatRupiah(summary.total_income)"></h3>
                 <div class="mt-4 flex items-center gap-2 text-emerald-500 text-xs font-medium bg-emerald-500/10 w-fit px-2 py-1 rounded-full">
                     <span>↗ Rincian Masuk</span>
                 </div>
             </a>
 
-            <a href="detail.html?mode=expense" class="group relative overflow-hidden bg-slate-900 border border-slate-800 hover:border-rose-500/50 rounded-2xl p-6 transition-all hover:shadow-2xl hover:shadow-rose-900/10 cursor-pointer">
+            <!-- Pengeluaran -->
+            <a href="detail.html?mode=expense"
+               class="group relative overflow-hidden bg-slate-900 border border-slate-800 hover:border-rose-500/50 rounded-2xl p-6 transition-all hover:shadow-2xl hover:shadow-rose-900/10 cursor-pointer">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition duration-500">
                     <svg class="w-16 h-16 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
                     </svg>
                 </div>
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Pengeluaran</p>
-                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-rose-400 transition" x-text="formatRupiah(summary.total_expense)"></h3>
+                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-rose-400 transition"
+                    x-text="formatRupiah(summary.total_expense)"></h3>
                 <div class="mt-4 flex items-center gap-2 text-rose-500 text-xs font-medium bg-rose-500/10 w-fit px-2 py-1 rounded-full">
                     <span>↘ Rincian Keluar</span>
                 </div>
             </a>
 
-            <a href="detail.html?mode=all" class="group relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 hover:border-sky-500/50 rounded-2xl p-6 shadow-lg transition-all hover:shadow-sky-900/20">
+            <!-- Saldo -->
+            <a href="detail.html?mode=all"
+               class="group relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 hover:border-sky-500/50 rounded-2xl p-6 shadow-lg transition-all hover:shadow-sky-900/20">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
                     <svg class="w-16 h-16 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                     </svg>
                 </div>
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Saldo Bersih</p>
-                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-sky-400 transition" x-text="formatRupiah(summary.balance)"></h3>
+                <h3 class="text-3xl font-bold text-white mt-2 group-hover:text-sky-400 transition"
+                    x-text="formatRupiah(summary.balance)"></h3>
                 <div class="mt-4 flex items-center gap-2 text-sky-500 text-xs font-medium bg-sky-500/10 w-fit px-2 py-1 rounded-full">
                     <span>↔ Mutasi Rekening</span>
                 </div>
@@ -197,11 +267,15 @@
 
         <!-- Chart -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
                 <h3 class="text-lg font-semibold text-white">Tren Cashflow 30 Hari</h3>
-                <div class="flex items-center gap-2 text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Masuk</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span>Keluar</span>
+                <div class="flex items-center gap-3 text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                    <span class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>Masuk
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>Keluar
+                    </span>
                 </div>
             </div>
             <div class="relative h-72 w-full">
@@ -212,8 +286,10 @@
     </main>
 
     <!-- QRIS + Contact Dev -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 mt-10">
-        <div class="border border-slate-800 rounded-2xl bg-slate-900/80 p-4 flex items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 mt-10 space-y-6">
+
+        <!-- QRIS -->
+        <div class="border border-slate-800 rounded-2xl bg-slate-900/80 p-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-1">
                     Support Sanger Dingin ☕ Segelas
@@ -226,74 +302,65 @@
                 </p>
             </div>
 
-            <a href="qris.jpeg" target="_blank" rel="noopener noreferrer" class="shrink-0 group">
+            <a href="qris.jpeg" target="_blank" rel="noopener noreferrer" class="shrink-0 group self-center sm:self-auto">
                 <img
                     src="qris.jpeg"
                     alt="Buy Me A Coffee"
-                    class="w-20 h-20 rounded-xl border border-slate-700 group-hover:border-emerald-400 transition object-cover">
+                    class="w-24 h-24 rounded-xl border border-slate-700 group-hover:border-emerald-400 transition object-cover">
                 <p class="text-[10px] text-center text-slate-500 mt-1 group-hover:text-emerald-400">
                     Buka QR full
                 </p>
             </a>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
-                <p class="text-sm text-slate-400">
-                    Jika Anda punya <span class="text-emerald-400 font-semibold">saran</span> atau 
-                    <span class="text-emerald-400 font-semibold">pertanyaan</span>, silakan hubungi Dev di Telegram:
-                    <a href="https://t.me/unxpctedd" target="_blank" class="text-emerald-400 hover:text-emerald-300 underline ml-1">
-                        @unxpctedd
-                    </a>
-                </p>
-            </div>
+        <!-- Contact Dev -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+            <p class="text-sm text-slate-400">
+                Jika Anda punya <span class="text-emerald-400 font-semibold">saran</span> atau 
+                <span class="text-emerald-400 font-semibold">pertanyaan</span>, silakan hubungi Dev di Telegram:
+                <a href="https://t.me/unxpctedd" target="_blank" class="text-emerald-400 hover:text-emerald-300 underline ml-1">
+                    @unxpctedd
+                </a>
+            </p>
         </div>
     </div>
 
-
+    <!-- Footer -->
     <footer class="border-t border-slate-900 bg-slate-950 pt-12 pb-8">
         <div class="max-w-6xl mx-auto px-6 flex flex-col items-center text-center">
             
-            <div class="mb-6">
-    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">
-        Developed By
-    </p>
+            <div class="mb-6 w-full">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">
+                    Developed By
+                </p>
 
-   <div class="flex items-center justify-center gap-4">
+                <div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                    <!-- Logo Image (rectangle style) -->
+                    <div class="w-28 h-20 rounded-xl overflow-hidden shadow-lg">
+                        <img src="a76.png" alt="A76 Labs Logo" class="w-full h-full object-cover">
+                    </div>
 
-    <!-- Logo Image (rectangle style) -->
-    <div class="w-28 h-20 rounded-xl overflow-hidden shadow-lg">
-        <img src="a76.png" alt="A76 Labs Logo" class="w-full h-full object-cover">
-    </div>
+                    <!-- Developer Info -->
+                    <div class="text-left">
+                        <!-- A76 Labs clickable -->
+                        <a href="https://t.me/unxpctedd" 
+                           target="_blank" 
+                           class="text-base font-bold text-white leading-tight hover:underline hover:text-green-500">
+                            A76 Labs.
+                        </a>
 
-    <!-- Developer Info -->
-    <div class="text-left">
-        
-        <!-- A76 Labs clickable -->
-        <a href="https://t.me/unxpctedd" 
-           target="_blank" 
-           class="text-base font-bold text-white leading-tight hover:underline hover:text-green-500">
-            A76 Labs.
-        </a>
-
-        <!-- Dev Name -->
-        <p class="text-sm text-slate-400 leading-tight mt-1">
-            Dev:
-            <a href="https://t.me/unxpctedd" 
-               target="_blank" 
-               class="text-emerald-500 hover:underline ml-1">
-                @unxpctedd
-            </a>
-        </p>
-    </div>
-
-</div>
-
-
-
-
-</div>
-
+                        <!-- Dev Name -->
+                        <p class="text-sm text-slate-400 leading-tight mt-1">
+                            Dev:
+                            <a href="https://t.me/unxpctedd" 
+                               target="_blank" 
+                               class="text-emerald-500 hover:underline ml-1">
+                                @unxpctedd
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
 
             <div class="w-full h-px bg-slate-900 my-6"></div>
 
