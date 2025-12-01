@@ -18,7 +18,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 <span>Dashboard</span>
             </a>
-            <h1 class="font-bold tracking-tight">Pengaturan Budget</h1>
+            <h1 class="font-bold tracking-tight">Pengaturan Budget Harian</h1>
             <div class="w-20"></div>
         </div>
     </nav>
@@ -27,8 +27,8 @@
         
         <div class="text-center space-y-2">
             <div class="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto text-2xl mb-4">🚨</div>
-            <h2 class="text-xl font-bold text-white">Daily Budget Alert</h2>
-            <p class="text-sm text-slate-400">Bot akan memarahi kamu jika jajan melebihi batas.</p>
+            <h2 class="text-xl font-bold text-white">Atur Pesan Limit Harian</h2>
+            <p class="text-sm text-slate-400">Bot Telegram akan Mengirim Pesan Alert, jika melebihi batas limit yang ditetapkan.</p>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
@@ -51,14 +51,14 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Pesan Peringatan Bot</label>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Pesan Peringatan di Bot Telegram</label>
                     <textarea 
                         x-model="form.alert_message" 
                         rows="3" 
                         placeholder="Contoh: Woy boros! Inget cicilan motor!" 
                         class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition placeholder-slate-600 text-sm"
                     ></textarea>
-                    <p class="text-[10px] text-slate-500 mt-2">Pesan ini akan muncul otomatis di Telegram.</p>
+                    <p class="text-[10px] text-slate-500 mt-2">Pesan ini akan muncul otomatis di Telegram, Ketika input pengeluaran tambahan</p>
                 </div>
 
                 <button 
@@ -80,9 +80,9 @@
         <div class="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4 flex gap-3 items-start">
             <span class="text-lg">💡</span>
             <div>
-                <h4 class="text-sm font-semibold text-slate-200">Tips Hemat</h4>
+                <h4 class="text-sm font-semibold text-slate-200">Tips</h4>
                 <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-                    Gunakan kata-kata yang "menohok" di pesan alert supaya kamu benar-benar sadar saat mau jajan lagi.
+                    Gunakan kata-kata yang "Marah" di pesan alert, Agar pesan lebih Kenak.
                 </p>
             </div>
         </div>

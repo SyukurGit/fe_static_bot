@@ -85,15 +85,15 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-slate-900/50 border border-emerald-500/30 rounded-xl p-5">
-                    <p class="text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Pemasukan</p>
+                    <p class="text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Total Pemasukan (Bulan Ini)</p>
                     <p class="text-2xl font-bold text-white" x-text="formatRupiah(stats.totalIncome)"></p>
                 </div>
                 <div class="bg-slate-900/50 border border-rose-500/30 rounded-xl p-5">
-                    <p class="text-[10px] uppercase tracking-widest text-rose-400 mb-1">Pengeluaran</p>
+                    <p class="text-[10px] uppercase tracking-widest text-rose-400 mb-1">Total Pengeluaran (Bulan Ini)</p>
                     <p class="text-2xl font-bold text-white" x-text="formatRupiah(stats.totalExpense)"></p>
                 </div>
                 <div class="bg-slate-900/50 border border-slate-700 rounded-xl p-5">
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 mb-1">Cashflow Bersih</p>
+                    <p class="text-[10px] uppercase tracking-widest text-slate-400 mb-1">Cashflow Bersih (Bulan Ini)</p>
                     <p class="text-2xl font-bold" :class="stats.net >= 0 ? 'text-sky-400' : 'text-orange-400'" x-text="formatRupiah(stats.net)"></p>
                 </div>
             </div>
@@ -105,7 +105,7 @@
                         <svg class="w-24 h-24 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
                     </div>
                     <h3 class="text-sm font-semibold text-emerald-400 flex items-center gap-2">
-                        <span>🏆 Hari Paling Cuan</span>
+                        <span>🤑 Hari Paling Tinggi Pemasukan (Bulan ini)</span>
                     </h3>
                     <div class="mt-4" x-show="stats.maxIncomeDay">
                         <p class="text-3xl font-bold text-white" x-text="formatRupiah(stats.maxIncomeAmount)"></p>
@@ -122,7 +122,7 @@
                         <svg class="w-24 h-24 text-rose-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
                     </div>
                     <h3 class="text-sm font-semibold text-rose-400 flex items-center gap-2">
-                        <span>⚠️ Hari Paling Boros</span>
+                        <span>📉 Hari Paling Tinggi Pengeluaran (Bulan ini)</span>
                     </h3>
                     <div class="mt-4" x-show="stats.maxExpenseDay">
                         <p class="text-3xl font-bold text-white" x-text="formatRupiah(stats.maxExpenseAmount)"></p>

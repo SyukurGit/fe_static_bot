@@ -19,9 +19,15 @@
              alt="Logo" 
              class="w-full h-full object-cover">
     </div>
+<span class="font-bold text-lg text-white">
+    Dompet<span class="text-emerald-400">Pintar</span>Bot
+</span>
 
-    <h1 class="text-xl font-bold text-white">A76 Labs. Area</h1>
-    <p class="text-xs text-slate-500">Ini Area terlarang. Khusus pemilik sistem.</p>
+    <p class="text-xs text-slate-500">Area terlarang. Khusus untuk pemilik sistem.</p>
+        <p class="text-xs text-slate-500">Panel Login SuperAdmin </p>
+
+
+    
 </div>
 
         <form @submit.prevent="login" class="space-y-4">
@@ -61,13 +67,13 @@
                         if (res.ok) {
                             // CEK ROLE: Harus Admin!
                             if (data.role !== 'admin') {
-                                this.error = "Anda bukan SuperAdmin! Ini are khusus pemilik sistem, Pergi dari sini.";
+                                this.error = "Anda bukan SuperAdmin! Ini area khusus pemilik sistem, Pergi dari sini.";
                                 return;
                             }
                             localStorage.setItem('jwt_token', data.token);
                             window.location.href = 'admin-panel.html'; // Redirect ke Panel
                         } else {
-                            this.error = data.error || 'Login gagal';
+                            this.error = data.error || 'Login gagal Username/Sandi anda salah';
                         }
                     } catch (e) {
                         this.error = "Gagal koneksi ke server";
