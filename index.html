@@ -14,6 +14,23 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        
+        /* Scroll Reveal Styles */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Delay untuk animasi berurutan */
+        .scroll-reveal:nth-child(1) { transition-delay: 0.1s; }
+        .scroll-reveal:nth-child(2) { transition-delay: 0.2s; }
+        .scroll-reveal:nth-child(3) { transition-delay: 0.3s; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen">
@@ -27,32 +44,23 @@
                 Login User &rarr;
             </a>
         </div>
-
-        
-
-        
     </nav>
 
     <header class="flex-1 flex flex-col items-center justify-center text-center px-6 py-20 relative overflow-hidden">
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10"></div>
 
         <div class="mb-6 relative group cursor-pointer">
-    <div class="w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/10 border border-slate-700 group-hover:scale-105 transition duration-500 overflow-hidden">
-        
-        <!-- Ganti emoji jadi gambar -->
-        <img src="logobot.png" alt="Logo" class="max-w-full max-h-full object-contain">
-        
-    </div>
+            <div class="w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/10 border border-slate-700 group-hover:scale-105 transition duration-500 overflow-hidden">
+                <img src="logobot.png" alt="Logo" class="max-w-full max-h-full object-contain">
+            </div>
 
-    <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-    <span class="w-2 h-2 rounded-full bg-green-900">
-        <span class="w-2 h-2 rounded-full bg-green-500 animate-ping absolute"></span>
-    </span>
-    Live Sync
-</div>
-
-</div>
-
+            <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-green-900">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-ping absolute"></span>
+                </span>
+                Live Sync
+            </div>
+        </div>
 
         <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
             Kelola dan Pantau Arus Keuangan <br>
@@ -76,43 +84,39 @@
     </header>
 
     <section class="max-w-5xl mx-auto px-6 py-16">
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 scroll-reveal">
             <h2 class="text-2xl font-bold text-white">Cara Daftar dan Pakai</h2>
             <p class="text-sm text-slate-500 mt-2">langkah untuk mulai daftar dan pakai.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-           <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-emerald-500/30 transition group">
-    <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition">
-        1️⃣
-    </div>
+            <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-emerald-500/30 transition group scroll-reveal">
+                <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition">
+                    1️⃣
+                </div>
 
-    <h3 class="font-bold text-white mb-2">Daftar Akun</h3>
+                <h3 class="font-bold text-white mb-2">Daftar Akun</h3>
 
-    <p class="text-sm text-slate-400">
-        Lakukan <span class="text-white font-semibold">ping chat bebas</span> ke bot 
-        <a href="https://t.me/DompetPintar_A76Labs_Bot" target="_blank" rel="noopener noreferrer"
-           class="text-emerald-400 font-mono hover:underline">
-            @DompetPintar_A76Labs_Bot
-        </a>
-        di Telegram untuk mendapatkan instruksi cara daftar lengkap.
-    </p>
+                <p class="text-sm text-slate-400">
+                    Lakukan <span class="text-white font-semibold">ping chat bebas</span> ke bot 
+                    <a href="https://t.me/DompetPintar_A76Labs_Bot" target="_blank" rel="noopener noreferrer"
+                       class="text-emerald-400 font-mono hover:underline">
+                        @DompetPintar_A76Labs_Bot
+                    </a>
+                    di Telegram untuk mendapatkan instruksi cara daftar lengkap.
+                </p>
 
-    <p class="text-sm text-slate-400 mt-2">
-        Setelah terdaftar, Anda akan mendapatkan Username dan Sandi dari
-        <a href="https://t.me/unxpctedd" target="_blank" rel="noopener noreferrer"
-           class="text-emerald-400 font-mono hover:underline">
-            @unxpctedd
-        </a>
-        yang nantinya anda bisa gunakan bot dan login di web.
-    </p>
-</div>
+                <p class="text-sm text-slate-400 mt-2">
+                    Setelah terdaftar, Anda akan mendapatkan Username dan Sandi dari
+                    <a href="https://t.me/unxpctedd" target="_blank" rel="noopener noreferrer"
+                       class="text-emerald-400 font-mono hover:underline">
+                        @unxpctedd
+                    </a>
+                    yang nantinya anda bisa gunakan bot dan login di web.
+                </p>
+            </div>
 
-            
-
-     
-
-       <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-purple-500/30 transition group">
+            <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-purple-500/30 transition group scroll-reveal">
                 <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:bg-purple-500/20 group-hover:text-purple-400 transition">
                     2️⃣
                 </div>
@@ -125,7 +129,7 @@
                 </a>
             </div>
 
-            <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-blue-500/30 transition group">
+            <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:border-blue-500/30 transition group scroll-reveal">
                 <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:bg-blue-500/20 group-hover:text-blue-400 transition">
                     3️⃣
                 </div>
@@ -144,54 +148,40 @@
                     </li>
                 </ul>
             </div>
-
-
-
+        </div>
     </section>
 
-    <footer class="border-t border-slate-900 bg-slate-950 pt-12 pb-8">
+    <footer class="border-t border-slate-900 bg-slate-950 pt-12 pb-8 scroll-reveal">
         <div class="max-w-6xl mx-auto px-6 flex flex-col items-center text-center">
             
             <div class="mb-6">
-    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">
-        Developed By
-    </p>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">
+                    Developed By
+                </p>
 
-   <div class="flex items-center justify-center gap-4">
+                <div class="flex items-center justify-center gap-4">
+                    <div class="w-28 h-20 rounded-xl overflow-hidden shadow-lg">
+                        <img src="a76.png" alt="A76 Labs Logo" class="w-full h-full object-cover">
+                    </div>
 
-    <!-- Logo Image (rectangle style) -->
-    <div class="w-28 h-20 rounded-xl overflow-hidden shadow-lg">
-        <img src="a76.png" alt="A76 Labs Logo" class="w-full h-full object-cover">
-    </div>
+                    <div class="text-left">
+                        <a href="https://t.me/unxpctedd" 
+                           target="_blank" 
+                           class="text-base font-bold text-white leading-tight hover:underline hover:text-green-500">
+                            A76 Labs.
+                        </a>
 
-    <!-- Developer Info -->
-    <div class="text-left">
-        
-        <!-- A76 Labs clickable -->
-        <a href="https://t.me/unxpctedd" 
-           target="_blank" 
-           class="text-base font-bold text-white leading-tight hover:underline hover:text-green-500">
-            A76 Labs.
-        </a>
-
-        <!-- Dev Name -->
-        <p class="text-sm text-slate-400 leading-tight mt-1">
-            Dev:
-            <a href="https://t.me/unxpctedd" 
-               target="_blank" 
-               class="text-emerald-500 hover:underline ml-1">
-                @unxpctedd
-            </a>
-        </p>
-    </div>
-
-</div>
-
-
-
-
-</div>
-
+                        <p class="text-sm text-slate-400 leading-tight mt-1">
+                            Dev:
+                            <a href="https://t.me/unxpctedd" 
+                               target="_blank" 
+                               class="text-emerald-500 hover:underline ml-1">
+                                @unxpctedd
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
 
             <div class="w-full h-px bg-slate-900 my-6"></div>
 
@@ -201,6 +191,28 @@
             </p>
         </div>
     </footer>
+
+    <script>
+        // Simple Scroll Reveal Animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        // Observe semua elemen dengan class scroll-reveal
+        document.addEventListener('DOMContentLoaded', () => {
+            const revealElements = document.querySelectorAll('.scroll-reveal');
+            revealElements.forEach(el => observer.observe(el));
+        });
+    </script>
 
 </body>
 </html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafik Analisa - DompetPintarBot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        @media (max-width: 640px) {
+            .summary-card { padding: 0.75rem; }
+        }
+    </style>
+    <link rel="icon" type="image/png" href="images1.png">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="chartApp()">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                <span class="hidden sm:inline">Dashboard</span>
+            </a>
+            <h1 class="font-bold tracking-tight text-base sm:text-lg">📈 Grafik Bulanan</h1>
+            <div class="w-10 sm:w-12"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6 pb-8">
+
+        <!-- Month Navigation & Filter -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/50 rounded-2xl p-4 sm:p-5 shadow-2xl">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                
+                <!-- Month Selector -->
+                <div class="flex items-center gap-2 sm:gap-3 bg-slate-950/80 p-1.5 rounded-xl border border-slate-700 shadow-inner w-full sm:w-auto justify-center">
+                    <button @click="changeMonth(-1)" class="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-all duration-200 active:scale-95">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <span class="w-36 sm:w-40 text-center font-semibold text-base sm:text-lg text-white" x-text="formatMonthYear(currentDate)"></span>
+                    <button @click="changeMonth(1)" class="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-all duration-200 active:scale-95">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Chart Type Filter -->
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <select x-model="chartType" @change="renderChart" class="w-full sm:w-auto bg-slate-950/80 border border-slate-700 text-sm rounded-xl px-3 sm:px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer transition-all duration-200 shadow-lg hover:bg-slate-900">
+                         <option value="comparison">📊 Bandingkan (In/Out)</option>
+        <option value="income">⬇️ Hanya Pemasukan</option>
+        <option value="expense">⬆️ Hanya Pengeluaran</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards - Enhanced -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <!-- Income Card -->
+            <div class="summary-card bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs sm:text-sm uppercase text-emerald-400 font-bold tracking-wider">Total Masuk</p>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-2xl sm:text-3xl font-bold text-emerald-100 tracking-tight" x-text="formatRupiah(summary.income)"></p>
+                <div class="mt-2 h-1 bg-emerald-500/20 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+
+            <!-- Expense Card -->
+            <div class="summary-card bg-gradient-to-br from-rose-900/30 to-rose-800/20 border border-rose-500/30 rounded-2xl p-4 sm:p-5 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs sm:text-sm uppercase text-rose-400 font-bold tracking-wider">Total Keluar</p>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-rose-500/20 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-2xl sm:text-3xl font-bold text-rose-100 tracking-tight" x-text="formatRupiah(summary.expense)"></p>
+                <div class="mt-2 h-1 bg-rose-500/20 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-rose-500 to-rose-400 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="summary-card bg-gradient-to-br from-slate-800/50 to-slate-700/30 border border-slate-600/50 rounded-2xl p-4 sm:p-5 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs sm:text-sm uppercase text-slate-400 font-bold tracking-wider">Selisih</p>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center" :class="summary.balance >= 0 ? 'bg-sky-500/20' : 'bg-orange-500/20'">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" :class="summary.balance >= 0 ? 'text-sky-400' : 'text-orange-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-2xl sm:text-3xl font-bold tracking-tight" :class="summary.balance >= 0 ? 'text-sky-300' : 'text-orange-300'" x-text="formatRupiah(summary.balance)"></p>
+                <div class="mt-2 h-1 rounded-full overflow-hidden" :class="summary.balance >= 0 ? 'bg-sky-500/20' : 'bg-orange-500/20'">
+                    <div class="h-full rounded-full animate-pulse" :class="summary.balance >= 0 ? 'bg-gradient-to-r from-sky-500 to-sky-400' : 'bg-gradient-to-r from-orange-500 to-orange-400'"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Container - Optimized -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/50 rounded-2xl p-4 sm:p-6 shadow-2xl relative">
+            <!-- Loading Overlay -->
+            <div x-show="isLoading" x-cloak class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 z-10 backdrop-blur-sm rounded-2xl">
+                <div class="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-3"></div>
+                <span class="text-slate-400 text-sm animate-pulse">Memuat grafik...</span>
+            </div>
+            
+            <!-- Chart Canvas -->
+            <div class="relative" style="height: 320px;">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+
+            <!-- Empty State -->
+            <div x-show="!isLoading && rawData.length === 0" x-cloak class="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
+                <svg class="w-16 h-16 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <p class="text-sm">Tidak ada data untuk bulan ini</p>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
+
+        function chartApp() {
+            return {
+                token: '',
+                currentDate: new Date(),
+                chartType: 'comparison',
+                chartInstance: null,
+                isLoading: false,
+                rawData: [],
+                summary: { income: 0, expense: 0, balance: 0 },
+
+                init() {
+                    this.token = this.getToken();
+                    if (!this.token) return window.location.href = 'index.html';
+                    this.fetchData();
+                },
+
+                getToken() {
+                    return localStorage.getItem('jwt_token') || '';
+                },
+
+                changeMonth(delta) {
+                    const newDate = new Date(this.currentDate);
+                    newDate.setMonth(newDate.getMonth() + delta);
+                    this.currentDate = newDate;
+                    this.fetchData();
+                },
+
+                async fetchData() {
+                    this.isLoading = true;
+                    try {
+                        const month = this.currentDate.getMonth() + 1;
+                        const year = this.currentDate.getFullYear();
+                        
+                        const res = await fetch(`${API_URL}/api/chart/daily?month=${month}&year=${year}`, {
+                            headers: { 
+                                'Authorization': `Bearer ${this.token}`, 
+                                'ngrok-skip-browser-warning': 'true' 
+                            }
+                        });
+
+                        if (!res.ok) throw new Error('Failed to fetch data');
+                        
+                        const json = await res.json();
+                        
+                        if (json.data && Array.isArray(json.data)) {
+                            this.rawData = json.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+                            this.calculateSummary();
+                            await this.$nextTick();
+                            this.renderChart();
+                        } else {
+                            this.rawData = [];
+                            this.summary = { income: 0, expense: 0, balance: 0 };
+                            this.renderChart();
+                        }
+                    } catch (e) {
+                        console.error('Fetch error:', e);
+                        this.rawData = [];
+                        this.summary = { income: 0, expense: 0, balance: 0 };
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                calculateSummary() {
+                    let inc = 0, exp = 0;
+                    this.rawData.forEach(d => {
+                        inc += d.income || 0;
+                        exp += d.expense || 0;
+                    });
+                    this.summary = { income: inc, expense: exp, balance: inc - exp };
+                },
+
+                renderChart() {
+                    const canvas = document.getElementById('monthlyChart');
+                    if (!canvas) return;
+                    
+                    const ctx = canvas.getContext('2d');
+                    
+                    if (this.chartInstance) {
+                        this.chartInstance.destroy();
+                        this.chartInstance = null;
+                    }
+
+                    if (this.rawData.length === 0) return;
+
+                    const labels = this.rawData.map(d => new Date(d.date).getDate());
+                    const incomeData = this.rawData.map(d => d.income || 0);
+                    const expenseData = this.rawData.map(d => d.expense || 0);
+
+                    let datasets = [];
+
+                    if (this.chartType === 'comparison' || this.chartType === 'income') {
+                        datasets.push({
+                            label: 'Pemasukan',
+                            data: incomeData,
+                            backgroundColor: '#10b981',
+                            borderRadius: 6,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        });
+                    }
+
+                    if (this.chartType === 'comparison' || this.chartType === 'expense') {
+                        datasets.push({
+                            label: 'Pengeluaran',
+                            data: expenseData,
+                            backgroundColor: '#f43f5e',
+                            borderRadius: 6,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        });
+                    }
+
+                    this.chartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: { labels, datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: {
+                                duration: 750,
+                                easing: 'easeInOutQuart'
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    align: 'end',
+                                    labels: { 
+                                        color: '#cbd5e1', 
+                                        font: { family: 'Inter', size: 11, weight: '600' },
+                                        padding: 12,
+                                        usePointStyle: true,
+                                        pointStyle: 'circle'
+                                    }
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                                    titleColor: '#fff',
+                                    titleFont: { size: 13, weight: '600' },
+                                    bodyColor: '#cbd5e1',
+                                    bodyFont: { size: 12 },
+                                    borderColor: '#334155',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    cornerRadius: 8,
+                                    displayColors: true,
+                                    callbacks: {
+                                        title: (context) => {
+                                            const idx = context[0].dataIndex;
+                                            const dateStr = this.rawData[idx].date;
+                                            return new Date(dateStr).toLocaleDateString('id-ID', { 
+                                                weekday: 'long', 
+                                                day: 'numeric', 
+                                                month: 'short', 
+                                                year: 'numeric' 
+                                            });
+                                        },
+                                        label: (context) => {
+                                            let label = context.dataset.label || '';
+                                            if (label) label += ': ';
+                                            if (context.parsed.y !== null) {
+                                                label += new Intl.NumberFormat('id-ID', { 
+                                                    style: 'currency', 
+                                                    currency: 'IDR', 
+                                                    maximumFractionDigits: 0 
+                                                }).format(context.parsed.y);
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    ticks: { 
+                                        color: '#64748b',
+                                        font: { size: 10 },
+                                        maxRotation: 0,
+                                        autoSkip: true,
+                                        maxTicksLimit: window.innerWidth < 640 ? 10 : 15
+                                    },
+                                    grid: { display: false }
+                                },
+                                y: {
+                                    ticks: { 
+                                        color: '#64748b',
+                                        font: { size: 10 },
+                                        callback: function(value) {
+                                            if(value >= 1000000) return (value/1000000).toFixed(1) + 'jt';
+                                            if(value >= 1000) return (value/1000).toFixed(0) + 'rb';
+                                            return value;
+                                        }
+                                    },
+                                    grid: { color: '#1e293b', drawBorder: false },
+                                    beginAtZero: true
+                                }
+                            },
+                            interaction: {
+                                mode: 'nearest',
+                                axis: 'x',
+                                intersect: false
+                            }
+                        }
+                    });
+                },
+
+                formatMonthYear(dateObj) {
+                    return dateObj.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                },
+
+                formatRupiah(num) {
+                    return new Intl.NumberFormat('id-ID', { 
+                        style: 'currency', 
+                        currency: 'IDR', 
+                        maximumFractionDigits: 0 
+                    }).format(num);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
