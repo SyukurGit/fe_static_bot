@@ -21,7 +21,7 @@
     </div>
 
     <h1 class="text-xl font-bold text-white">A76 Labs. Area</h1>
-    <p class="text-xs text-slate-500">Area terlarang. Khusus pemilik sistem.</p>
+    <p class="text-xs text-slate-500">Ini Area terlarang. Khusus pemilik sistem.</p>
 </div>
 
         <form @submit.prevent="login" class="space-y-4">
@@ -61,7 +61,7 @@
                         if (res.ok) {
                             // CEK ROLE: Harus Admin!
                             if (data.role !== 'admin') {
-                                this.error = "kau bukan Admin! Pergi sana nak sebelum saya smackdown.";
+                                this.error = "Anda bukan SuperAdmin! Ini are khusus pemilik sistem, Pergi dari sini.";
                                 return;
                             }
                             localStorage.setItem('jwt_token', data.token);
