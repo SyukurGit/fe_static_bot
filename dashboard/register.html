@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Akun - MoneyBot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+
+    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
+                <i class="fas fa-user-plus text-2xl text-blue-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">Buat Akun Baru</h2>
+            <p class="text-gray-500 text-sm mt-2">Dapatkan akses Trial Gratis 1 Hari!</p>
+        </div>
+
+        <div id="alertBox" class="hidden mb-4 p-3 rounded text-sm font-semibold text-center"></div>
+
+        <form id="registerForm" class="space-y-4">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                <input type="text" id="regUsername" 
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    placeholder="Contoh: ujang123" required>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                <input type="password" id="regPass" 
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    placeholder="******" required>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Konfirmasi Password</label>
+                <input type="password" id="regConfirmPass" 
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    placeholder="******" required>
+            </div>
+
+            <button type="submit" id="btnSubmit"
+                class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
+                Daftar Sekarang
+            </button>
+        </form>
+
+        <p class="text-center text-sm text-gray-600 mt-6">
+            Sudah punya akun? 
+            <a href="index.html" class="text-blue-600 font-bold hover:underline">Login di sini</a>
+        </p>
+    </div>
+
+    <script>
+        // CONFIG: URL Ngrok Backend Kamu (Update jika ngrok ganti)
+        const API_BASE_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
+
+        const form = document.getElementById('registerForm');
+        const alertBox = document.getElementById('alertBox');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        // Fungsi Tampilkan Alert
+        function showAlert(message, type = 'error') {
+            alertBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+            if (type === 'error') {
+                alertBox.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                alertBox.classList.add('bg-green-100', 'text-green-700');
+            }
+            alertBox.innerText = message;
+            alertBox.classList.remove('hidden');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Ambil Value
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPass').value;
+            const confirm_password = document.getElementById('regConfirmPass').value;
+
+            // 1. Validasi Client Side (Cek Password Cocok)
+            if (password !== confirm_password) {
+                showAlert("❌ Password dan Konfirmasi tidak cocok!");
+                return;
+            }
+
+            // Ubah tombol jadi loading
+            const originalBtnText = btnSubmit.innerText;
+            btnSubmit.innerText = "Memproses...";
+            btnSubmit.disabled = true;
+
+            try {
+                // 2. Kirim ke Backend
+                const res = await fetch(`${API_BASE_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, confirm_password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    // SUKSES
+                    showAlert("✅ Registrasi Berhasil! Mengalihkan...", "success");
+                    setTimeout(() => {
+                        window.location.href = 'index.html'; // Pindah ke halaman Login
+                    }, 1500);
+                } else {
+                    // GAGAL (Username kembar, dll)
+                    showAlert(`⚠️ ${data.error || "Gagal mendaftar"}`);
+                }
+
+            } catch (err) {
+                console.error(err);
+                showAlert("❌ Gagal koneksi ke server Backend!");
+            } finally {
+                // Kembalikan tombol
+                btnSubmit.innerText = originalBtnText;
+                btnSubmit.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

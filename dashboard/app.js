@@ -123,6 +123,9 @@ async fetchChart() {
                     }
                 },
 
+
+                
+
                 // --- CHART LOGIC (OPTIMIZED) ---
                 updateChart(data) {
                     const ctx = document.getElementById('mainChart');

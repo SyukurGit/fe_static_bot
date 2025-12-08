@@ -8,13 +8,14 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
     <link rel="icon" type="image/png" href="a76trans.png">
-
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen" x-data="userDetail()">
 
     <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
         <div class="max-w-3xl mx-auto px-6 h-16 flex items-center gap-4">
-            <a href="admin-panel.html" class="text-slate-400 hover:text-white">&larr; Kembali</a>
+            <a href="admin-panel.html" class="text-slate-400 hover:text-white flex items-center gap-1 text-sm font-medium">
+                &larr; Kembali
+            </a>
             <h1 class="font-bold tracking-tight">Detail Pengguna</h1>
         </div>
     </nav>
@@ -24,13 +25,24 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <p class="text-xs text-slate-500 uppercase font-bold mb-1">Pengguna</p>
-                <h2 class="text-2xl font-bold text-white capitalize" x-text="data.user.username"></h2>
-                <p class="text-sm text-slate-400 mt-1">ID Telegram: <span class="font-mono text-emerald-400" x-text="data.user.telegram_id"></span></p>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-3xl font-bold text-white capitalize" x-text="data.user.username"></h2>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+                          :class="{
+                            'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': data.user.status === 'active',
+                            'bg-amber-500/10 text-amber-400 border-amber-500/20': data.user.status === 'trial',
+                            'bg-red-500/10 text-red-400 border-red-500/20': data.user.status === 'suspended'
+                          }" 
+                          x-text="data.user.status">
+                    </span>
+                </div>
+                <p class="text-sm text-slate-400 mt-1">ID Telegram: <span class="font-mono text-emerald-400" x-text="data.user.telegram_id || 'Belum Bind'"></span></p>
             </div>
-            <div class="text-right">
-                <p class="text-xs text-slate-500 uppercase font-bold mb-1">Terakhir Aktif</p>
-                <p class="text-sm font-medium text-white" x-text="formatDate(data.stats.last_active)"></p>
-            </div>
+            
+            <a :href="`admin-user-status.html?id=${userID}`" 
+               class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2 rounded-lg border border-slate-700 shadow-sm transition">
+                ⚙ Kelola Subscription
+            </a>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -49,24 +61,32 @@
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 class="text-lg font-semibold mb-4 text-orange-400">Edit Akun</h3>
-            <p class="text-xs text-slate-500 mb-4">Kosongkan kolom yang tidak ingin diubah.</p>
+            <h3 class="text-lg font-semibold mb-4 text-orange-400 border-b border-slate-800 pb-2">Edit Data Akun</h3>
             
             <form @submit.prevent="updateUser" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">Username Baru</label>
-                    <input type="text" x-model="form.username" :placeholder="data.user.username" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 focus:border-orange-500 outline-none">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Username Baru</label>
+                        <input type="text" x-model="form.username" :placeholder="data.user.username" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:border-orange-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Telegram ID Baru</label>
+                        <input type="number" x-model="form.telegram_id" :placeholder="data.user.telegram_id || 'Masukkan ID Telegram'" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:border-orange-500 outline-none transition">
+                        <p class="text-[10px] text-slate-500 mt-1">*Masukkan angka saja. Kosongkan jika tidak ubah.</p>
+                    </div>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">Password Baru</label>
-                    <input type="text" x-model="form.password" placeholder="Masukkan password baru..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 focus:border-orange-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Password Baru</label>
+                    <input type="text" x-model="form.password" placeholder="Isi hanya jika ingin ganti password..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:border-orange-500 outline-none transition">
                 </div>
                 
-                <div class="pt-2">
-                    <button type="submit" class="bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-lg text-sm transition">
+                <div class="pt-2 flex items-center justify-between">
+                    <button type="submit" class="bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-lg text-sm transition shadow-lg shadow-orange-900/20">
                         Simpan Perubahan
                     </button>
-                    <span x-show="message" class="ml-3 text-xs" :class="isError ? 'text-red-400' : 'text-green-400'" x-text="message"></span>
+                    <span x-show="message" class="text-xs font-medium" :class="isError ? 'text-red-400' : 'text-green-400'" x-text="message"></span>
                 </div>
             </form>
         </div>
@@ -81,7 +101,7 @@
                 token: localStorage.getItem('jwt_token'),
                 userID: new URLSearchParams(window.location.search).get('id'),
                 data: { user: {}, stats: {} },
-                form: { username: '', password: '' },
+                form: { username: '', password: '', telegram_id: '' },
                 message: '',
                 isError: false,
 
@@ -92,11 +112,7 @@
                 },
 
                 async fetchWithAuth(url, options = {}) {
-                    const headers = {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.token}`,
-                        'ngrok-skip-browser-warning': 'true'
-                    };
+                    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' };
                     const res = await fetch(`${API_URL}${url}`, { ...options, headers });
                     if (res.status === 401) window.location.href = 'admin-login.html';
                     return res;
@@ -114,13 +130,13 @@
                 async updateUser() {
                     this.message = 'Menyimpan...'; this.isError = false;
                     
-                    // Hanya kirim field yang diisi
                     const payload = {};
                     if(this.form.username) payload.username = this.form.username;
                     if(this.form.password) payload.password = this.form.password;
+                    if(this.form.telegram_id) payload.telegram_id = parseInt(this.form.telegram_id); // Pastikan integer
 
                     if(Object.keys(payload).length === 0) {
-                        this.message = 'Tidak ada perubahan.';
+                        this.message = 'Tidak ada perubahan data.';
                         return;
                     }
 
@@ -132,21 +148,18 @@
                     const result = await res.json();
                     if(res.ok) {
                         this.message = '✅ Berhasil disimpan!';
-                        this.form.password = ''; // Reset field password
-                        this.fetchDetails(); // Refresh data tampilan
+                        this.form.password = ''; 
+                        this.form.username = ''; 
+                        this.form.telegram_id = '';
+                        this.fetchDetails(); // Refresh tampilan
                     } else {
                         this.isError = true;
-                        this.message = `❌ ${result.error || 'Gagal'}`;
+                        this.message = `❌ ${result.error || 'Gagal update'}`;
                     }
                 },
 
-                formatRupiah(num) {
-                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num || 0);
-                },
-                formatDate(dateStr) {
-                    if (!dateStr) return "-";
-                    return new Date(dateStr).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-                }
+                formatRupiah(num) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num || 0); },
+                formatDate(dateStr) { if (!dateStr) return "-"; return new Date(dateStr).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }); }
             }
         }
     </script>

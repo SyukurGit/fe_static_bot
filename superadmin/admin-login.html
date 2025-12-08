@@ -8,27 +8,19 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak] { display: none !important; }</style>
     <link rel="icon" type="image/png" href="a76trans.png">
-
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen" x-data="adminAuth()">
 
     <div class="w-full max-w-sm p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
         <div class="text-center mb-8">
-    <div class="w-12 h-12 rounded-xl overflow-hidden mx-auto mb-3 shadow-md">
-        <img src="logobot.png" 
-             alt="Logo" 
-             class="w-full h-full object-cover">
-    </div>
-<span class="font-bold text-lg text-white">
-    Dompet<span class="text-emerald-400">Pintar</span>Bot
-</span>
-
-    <p class="text-xs text-slate-500">Area terlarang. Khusus untuk pemilik sistem.</p>
-        <p class="text-xs text-slate-500">Panel Login SuperAdmin </p>
-
-
-    
-</div>
+            <div class="w-12 h-12 rounded-xl overflow-hidden mx-auto mb-3 shadow-md">
+                <img src="logobot.png" alt="Logo" class="w-full h-full object-cover">
+            </div>
+            <span class="font-bold text-lg text-white">
+                Dompet<span class="text-emerald-400">Pintar</span>Bot
+            </span>
+            <p class="text-xs text-slate-500">Area terlarang. Khusus untuk pemilik sistem.</p>
+        </div>
 
         <form @submit.prevent="login" class="space-y-4">
             <div>
@@ -48,7 +40,7 @@
     </div>
 
     <script>
-        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; // GANTI DENGAN URL API KAMU
+        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; 
 
         function adminAuth() {
             return {
@@ -65,15 +57,15 @@
                         const data = await res.json();
 
                         if (res.ok) {
-                            // CEK ROLE: Harus Admin!
-                            if (data.role !== 'admin') {
+                            // PERBAIKAN: Cek role di dalam objek user (data.user.role)
+                            if (data.user.role !== 'admin') {
                                 this.error = "Anda bukan SuperAdmin! Ini area khusus pemilik sistem, Pergi dari sini.";
                                 return;
                             }
                             localStorage.setItem('jwt_token', data.token);
-                            window.location.href = 'admin-panel.html'; // Redirect ke Panel
+                            window.location.href = 'admin-panel.html'; 
                         } else {
-                            this.error = data.error || 'Login gagal Username/Sandi anda salah';
+                            this.error = data.error || 'Login gagal';
                         }
                     } catch (e) {
                         this.error = "Gagal koneksi ke server";
