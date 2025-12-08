@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Member - DompetPintarBot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="icon" type="image/png" href="a76trans.png">
+    <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen" x-data="userAuth()">
+
+    <div class="w-full max-w-sm p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
+        
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 rounded-xl overflow-hidden mx-auto mb-4 shadow-lg shadow-emerald-500/20">
+                <img src="croplogobot.png" alt="Logo" class="w-full h-full object-cover">
+            </div>
+            <h1 class="font-bold text-xl text-white">
+                Dompet<span class="text-emerald-400">Pintar</span>Bot
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Silakan login untuk akses dashboard.</p>
+        </div>
+
+        <form @submit.prevent="login" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
+                <input type="text" x-model="form.username" 
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition text-sm"
+                    placeholder="Masukkan username..." required>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+                <input type="password" x-model="form.password" 
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition text-sm"
+                    placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" 
+                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-emerald-900/20 text-sm flex justify-center items-center"
+                :disabled="isLoading">
+                <span x-show="!isLoading">Masuk Dashboard</span>
+                <span x-show="isLoading" class="animate-pulse">Memproses...</span>
+            </button>
+
+            <div x-show="error" x-transition class="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-center">
+                <p x-text="error" class="text-red-400 text-xs font-medium"></p>
+            </div>
+        </form>
+
+        <p class="text-center text-xs text-slate-500 mt-6">
+            Belum punya akun? 
+            <a href="../register.html" class="text-emerald-400 hover:text-emerald-300 font-medium hover:underline">Daftar Trial Gratis</a>
+        </p>
+        <p class="text-center text-xs text-slate-400 mt-1">
+            Login Superadmin?
+            <a href="../superadmin/admin-login.html" class="text-emerald-400 hover:text-emerald-300 underline">
+                klik di sini
+            </a>
+        </p>
+    </div>
+
+    <script>
+        // CONFIG: Ganti sesuai URL Ngrok kamu
+        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; 
+
+        function userAuth() {
+            return {
+                form: { username: '', password: '' },
+                error: '',
+                isLoading: false,
+
+                async login() {
+                    this.error = '';
+                    this.isLoading = true;
+                    try {
+                        const res = await fetch(`${API_URL}/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                            body: JSON.stringify(this.form)
+                        });
+                        const data = await res.json();
+
+                        if (res.ok) {
+                            // 1. Simpan Token & Data User Lengkap
+                            localStorage.setItem('jwt_token', data.token);
+                            localStorage.setItem('username', data.user.username);
+                            localStorage.setItem('user', JSON.stringify(data.user)); // Penting untuk timer trial
+
+                            // 2. LOGIKA REDIRECT PINTAR
+                            if (data.user.role === 'admin') {
+                                // Jika Admin login di form User -> Lempar ke Admin Panel
+                                // Path: dari /dashboard/user-login.html naik ke root (../) lalu ke superadmin/
+                                window.location.href = '../superadmin/admin-panel.html';
+                            } else {
+                                // Jika User biasa -> Lempar ke Dashboard
+                                // Path: user-login.html dan index.html ada di folder yang sama (/dashboard/)
+                                window.location.href = 'index.html'; 
+                            }
+                        } else {
+                            this.error = data.error || 'Login gagal, periksa username/password.';
+                        }
+                    } catch (e) {
+                        this.error = "Gagal terhubung ke server.";
+                        console.error(e);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

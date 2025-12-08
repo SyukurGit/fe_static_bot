@@ -20,57 +20,10 @@
 </head>
 <body class="bg-slate-950 text-slate-100 selection:bg-emerald-500/30" x-data="mainDashboard()">
 
-
-    
-
-    <!-- Modal Login -->
-    <div x-show="!isLoggedIn" x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 bg-opacity-90 backdrop-blur-sm">
-        <div class="w-full max-w-sm p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
-            <div class="text-center mb-4">
-                <span class="font-bold text-lg text-white">
-                    Dompet<span class="text-emerald-400">Pintar</span>Bot
-                </span>
-            </div>
-
-            <form @submit.prevent="login" class="space-y-4">
-                <input
-                    type="text"
-                    x-model="loginForm.username"
-                    placeholder="Username"
-                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 
-                           focus:border-emerald-500 focus:outline-none transition">
-
-                <input
-                    type="password"
-                    x-model="loginForm.password"
-                    placeholder="Password"
-                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 
-                           focus:border-emerald-500 focus:outline-none transition">
-
-                <button
-                    type="submit"
-                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg 
-                           transition shadow-lg shadow-emerald-900/20">
-                    Masuk Dashboard
-                </button>
-
-                <p x-show="loginError" x-text="loginError" class="text-red-400 text-xs text-center"></p>
-
-                <p class="text-center text-xs text-slate-400 mt-1">
-                    Login Superadmin?
-                    <a
-                        href="https://www.dompet-pintar.work.gd/superadmin/admin-login.html"
-                        class="text-emerald-400 hover:text-emerald-300 underline">
-                        klik di sini
-                    </a>
-                </p>
-            </form>
-        </div>
-    </div>
+    <!-- NOTE: Form login modal telah DIHAPUS dari halaman ini.
+         Login sekarang berada di halaman terpisah (contoh: /dashboard/user-login.html) -->
 
     <!-- Navbar -->
-   <!-- Navbar -->
 <nav class="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md"
      x-data="{ mobileMenuOpen: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -193,8 +146,6 @@
                 <span class="text-xs text-slate-500">Live Updating...</span>
             </div>
         </div>
-
-
 
         <!-- Info + Tombol Input -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-2">
@@ -392,6 +343,7 @@
         </div>
     </footer>
 
-    <script src="app.js"></script>
+    <!-- Inline app script (updated) -->
+<script src="app.js"></script>
 </body>
 </html>

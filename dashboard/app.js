@@ -1,107 +1,112 @@
-const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
 
-function mainDashboard() {
-    return {
-        isLoggedIn: false,
-        token: localStorage.getItem('jwt_token') || '',
-        username: localStorage.getItem('username') || 'User', // <-- TAMBAHAN 1: State Username
-        loginForm: { username: '', password: '' },
-        loginError: '',
-        summary: { total_income: 0, total_expense: 0, balance: 0 },
-        chartInstance: null,
-        pollingInterval: null, // Variable untuk menyimpan interval
+        // CONFIG: Ganti sesuai URL Ngrok kamu jika perlu
+        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
 
-        init() {
-            if (this.token) {
-                this.isLoggedIn = true;
-                this.username = localStorage.getItem('username') || 'User'; // <-- TAMBAHAN 2: Baca saat init
-                this.startRealtimeUpdates(); // Mulai mesin update otomatis
-            }
-        },
+        function mainDashboard() {
+            return {
+                isLoggedIn: false,
+                token: localStorage.getItem('jwt_token') || '',
+                username: localStorage.getItem('username') || 'User', // <-- TAMBAHAN 1: State Username
+                loginForm: { username: '', password: '' },
+                loginError: '',
+                summary: { total_income: 0, total_expense: 0, balance: 0 },
+                chartInstance: null,
+                pollingInterval: null, // Variable untuk menyimpan interval
+                lastChartDataJson: null, // untuk deteksi perubahan chart
 
-        // --- SISTEM REALTIME (POLLING) ---
-        startRealtimeUpdates() {
-            // 1. Ambil data pertama kali langsung
-            this.fetchAllData();
+                init() {
+                    if (this.token) {
+                        this.isLoggedIn = true;
+                        this.username = localStorage.getItem('username') || 'User'; // <-- TAMBAHAN 2: Baca saat init
+                        this.startRealtimeUpdates(); // Mulai mesin update otomatis
+                    } else {
+                        // Jika tidak ada token, jangan tampilkan dashboard
+                        this.isLoggedIn = false;
+                    }
+                },
 
-            // 2. Pasang timer setiap 3 detik (3000ms)
-            // Menggunakan arrow function agar 'this' tetap mengacu ke Alpine component
-            this.pollingInterval = setInterval(() => {
-                if (this.isLoggedIn) {
-                    // Fetch silent (tanpa loading spinner yang mengganggu)
-                    this.fetchSummary();
-                    this.fetchChart();
-                }
-            }, 3000);
-        },
+                // --- SISTEM REALTIME (POLLING) ---
+                startRealtimeUpdates() {
+                    // 1. Ambil data pertama kali langsung
+                    this.fetchAllData();
 
-        stopRealtimeUpdates() {
-            if (this.pollingInterval) clearInterval(this.pollingInterval);
-        },
+                    // 2. Pasang timer setiap 3 detik (3000ms)
+                    // Menggunakan arrow function agar 'this' tetap mengacu ke Alpine component
+                    this.pollingInterval = setInterval(() => {
+                        if (this.isLoggedIn) {
+                            // Fetch silent (tanpa loading spinner yang mengganggu)
+                            this.fetchSummary();
+                            this.fetchChart();
+                        }
+                    }, 3000);
+                },
 
-        // --- AUTH ---
-        async login() {
-            this.loginError = '';
-            try {
-                const res = await fetch(`${API_URL}/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify(this.loginForm)
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    this.token = data.token;
-                    localStorage.setItem('jwt_token', data.token);
-                    
-                    // <-- TAMBAHAN 3: Simpan Username dari Respon Login
-                    this.username = data.username;
-                    localStorage.setItem('username', data.username);
+                stopRealtimeUpdates() {
+                    if (this.pollingInterval) {
+                        clearInterval(this.pollingInterval);
+                        this.pollingInterval = null;
+                    }
+                },
 
-                    this.isLoggedIn = true;
-                    this.startRealtimeUpdates(); // Mulai update saat login sukses
-                } else {
-                    this.loginError = data.error || 'Login gagal';
-                }
-            } catch (e) { this.loginError = 'Koneksi error'; }
-        },
+                // --- AUTH (opsional: bermanfaat jika perlu login dari sini juga) ---
+                async login() {
+                    this.loginError = '';
+                    try {
+                        const res = await fetch(`${API_URL}/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                            body: JSON.stringify(this.loginForm)
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            this.token = data.token;
+                            localStorage.setItem('jwt_token', data.token);
+                            
+                            // <-- TAMBAHAN 3: Simpan Username dari Respon Login
+                            this.username = data.username || (data.user && data.user.username) || 'User';
+                            localStorage.setItem('username', this.username);
 
-        logout() {
-            this.stopRealtimeUpdates(); // Matikan update saat logout
-            localStorage.removeItem('jwt_token');
-            localStorage.removeItem('username'); // <-- TAMBAHAN 4: Hapus Username
-            this.username = '';
-            window.location.reload();
-        },
+                            this.isLoggedIn = true;
+                            this.startRealtimeUpdates(); // Mulai update saat login sukses
+                        } else {
+                            this.loginError = data.error || 'Login gagal';
+                        }
+                    } catch (e) { this.loginError = 'Koneksi error'; console.error(e); }
+                },
 
-        // --- FETCH DATA ---
-        async fetchWithAuth(endpoint) {
-            try {
-                const res = await fetch(`${API_URL}${endpoint}`, {
-                    headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' }
-                });
-                if (res.status === 401) { this.logout(); return null; }
-                return await res.json();
-            } catch (e) { return null; }
-        },
+                logout() {
+                    this.stopRealtimeUpdates(); // Matikan update saat logout
+                    localStorage.removeItem('jwt_token');
+                    localStorage.removeItem('username'); // <-- TAMBAHAN 4: Hapus Username
+                    this.token = '';
+                    this.username = '';
+                    this.isLoggedIn = false;
+                    // reload agar state UI bersih; atau arahkan ke halaman login
+                    window.location.href = 'user-login.html'; 
+                },
 
-        async fetchAllData() {
-            await Promise.all([this.fetchSummary(), this.fetchChart()]);
-        },
+                // --- FETCH DATA ---
+                async fetchWithAuth(endpoint) {
+                    try {
+                        const res = await fetch(`${API_URL}${endpoint}`, {
+                            headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' }
+                        });
+                        if (res.status === 401) { this.logout(); return null; }
+                        return await res.json();
+                    } catch (e) { console.error('fetchWithAuth error', e); return null; }
+                },
 
-        async fetchSummary() {
-            const sum = await this.fetchWithAuth('/api/summary');
-            // Alpine.js akan otomatis update angka di HTML jika nilai variable berubah
-            if (sum) this.summary = sum;
-        },
+                async fetchAllData() {
+                    await Promise.all([this.fetchSummary(), this.fetchChart()]);
+                },
 
-      
+                async fetchSummary() {
+                    const sum = await this.fetchWithAuth('/api/summary');
+                    // Alpine.js akan otomatis update angka di HTML jika nilai variable berubah
+                    if (sum) this.summary = sum;
+                },
 
-        // --- HELPERS ---
-        formatRupiah(num) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num || 0);
-        },
-
-async fetchChart() {
+                async fetchChart() {
                     const chartRes = await this.fetchWithAuth('/api/chart/daily');
                     if (chartRes && chartRes.data) {
                         // 1. Urutkan data berdasarkan tanggal
@@ -123,8 +128,10 @@ async fetchChart() {
                     }
                 },
 
-
-                
+                // --- HELPERS ---
+                formatRupiah(num) {
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num || 0);
+                },
 
                 // --- CHART LOGIC (OPTIMIZED) ---
                 updateChart(data) {
@@ -132,8 +139,8 @@ async fetchChart() {
                     if (!ctx) return;
 
                     const labels = data.map(d => new Date(d.date).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'}));
-                    const incomeData = data.map(d => d.income);
-                    const expenseData = data.map(d => d.expense);
+                    const incomeData = data.map(d => d.income || 0);
+                    const expenseData = data.map(d => d.expense || 0);
 
                     // Update Existing Chart
                     if (this.chartInstance) {
@@ -188,7 +195,7 @@ async fetchChart() {
                                 plugins: { 
                                     legend: { display: false },
                                     tooltip: {
-                                        enabled: true, // Pastikan tooltip nyala
+                                        enabled: true,
                                         backgroundColor: 'rgba(15, 23, 42, 0.9)',
                                         titleColor: '#f8fafc',
                                         bodyColor: '#e2e8f0',
@@ -228,5 +235,6 @@ async fetchChart() {
                         });
                     }
                 }       
-    }
-}
+            }
+        }
+   
