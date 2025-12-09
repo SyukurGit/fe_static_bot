@@ -95,18 +95,24 @@
                         });
                         const data = await res.json();
 
-                        if (res.ok) {
-                            // 1. Simpan Token & Data User
+                       if (res.ok) {
+                            // 1. Simpan Token & Data User Lengkap
                             localStorage.setItem('jwt_token', data.token);
                             localStorage.setItem('username', data.user.username);
-                            localStorage.setItem('user', JSON.stringify(data.user));
+                            localStorage.setItem('user', JSON.stringify(data.user)); // Penting untuk cek status
 
-                            // 2. [PERBAIKAN] HAPUS LOGIKA REDIRECT ADMIN
-                            // Apapun role-nya (termasuk admin), jika login lewat form user,
-                            // PAKSA masuk ke dashboard user.
-                            window.location.href = 'index.html'; 
-                            
+                            // 2. LOGIKA REDIRECT PINTAR (Update)
+                            // Cek status user dari response backend
+                            if (data.user.status === 'suspended') {
+                                // Jika status suspended, lempar ke halaman pembayaran
+                                window.location.href = 'suspended.html';
+                            } else {
+                                // Jika active atau trial, masuk ke dashboard normal
+                                window.location.href = 'index.html'; 
+                            }
+
                         } else {
+                            // ... kode error handling tetap sama ...
                             this.error = data.error || 'Login gagal, periksa username/password.';
                         }
                     } catch (e) {

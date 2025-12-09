@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akun Ditangguhkan - DompetPintarBot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="icon" type="image/png" href="a76trans.png">
+    <style>
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4" x-data="suspendedApp()">
+
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden relative">
+        
+        <div class="absolute top-0 left-0 w-full h-2 bg-red-500"></div>
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"></div>
+
+        <div class="p-8 text-center space-y-6 relative z-10">
+            
+            <div class="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-red-500/30">
+                <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+
+            <div>
+                <h1 class="text-2xl font-bold text-white mb-2">Masa Trial Habis!</h1>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Maaf <span class="text-white font-semibold" x-text="username"></span>, akses Dashboard sementara dikunci. Silakan lakukan pembayaran untuk mengaktifkan akun permanen.
+                </p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-inner mx-auto w-fit">
+                <img src="qris.jpeg" alt="QRIS Pembayaran" class="w-48 h-48 object-contain">
+            </div>
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Scan QRIS di atas</p>
+
+            <div class="space-y-3 pt-4 border-t border-slate-800">
+                <label class="block text-xs font-medium text-slate-300 mb-2">Upload Bukti Transfer (Screenshot/Foto)</label>
+                
+                <input type="file" @change="handleFile" accept="image/*"
+                    class="block w-full text-sm text-slate-400
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-xs file:font-semibold
+                    file:bg-slate-800 file:text-white
+                    hover:file:bg-slate-700
+                    cursor-pointer bg-slate-950 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500"
+                >
+
+                <button @click="verifyPayment" :disabled="!file || isProcessing"
+                    class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2">
+                    <span x-show="!isProcessing">Kirim Bukti & Verifikasi Otomatis</span>
+                    <span x-show="isProcessing" class="animate-pulse">Memproses AI...</span>
+                </button>
+            </div>
+
+            <button @click="logout" class="text-xs text-red-400 hover:text-red-300 font-medium mt-4">
+                Logout / Ganti Akun
+            </button>
+
+        </div>
+    </div>
+
+    <script>
+        function suspendedApp() {
+            return {
+                username: localStorage.getItem('username') || 'User',
+                file: null,
+                isProcessing: false,
+
+                init() {
+                    // Proteksi Terbalik: Kalau akunnya 'active' / 'trial', usir balik ke Dashboard
+                    // Biar gak ada orang iseng buka halaman ini kalau gak perlu.
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        const user = JSON.parse(userStr);
+                        if (user.status !== 'suspended') {
+                            window.location.href = 'index.html';
+                        }
+                    } else {
+                        window.location.href = 'user-login.html';
+                    }
+                },
+
+                handleFile(e) {
+                    this.file = e.target.files[0];
+                },
+
+               async verifyPayment() {
+                    if (!this.file) return alert("Pilih file bukti transfer dulu!");
+
+                    this.isProcessing = true;
+                    
+                    // Siapkan data form (Multipart)
+                    const formData = new FormData();
+                    formData.append('file', this.file);
+
+                    try {
+                        const token = localStorage.getItem('jwt_token');
+                        
+                        // Tembak API Backend
+                        // Ganti API_URL sesuai config kamu, misal pakai const API_URL di atas
+                        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; 
+                        
+                        const res = await fetch(`${API_URL}/api/verify-payment`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'ngrok-skip-browser-warning': 'true'
+                                // Jangan set 'Content-Type': 'multipart/form-data', 
+                                // Biarkan browser yang set otomatis boundary-nya!
+                            },
+                            body: formData
+                        });
+
+                        const json = await res.json();
+
+                        if (res.ok) {
+                            // Sukses!
+                            alert("✅ " + json.message);
+                            
+                            // Update data user di localStorage biar statusnya berubah jadi 'active'
+                            let user = JSON.parse(localStorage.getItem('user'));
+                            user.status = 'active';
+                            localStorage.setItem('user', JSON.stringify(user));
+
+                            // Masuk dashboard
+                            window.location.href = 'index.html';
+                        } else {
+                            // Gagal (ditolak AI atau error lain)
+                            alert("❌ Verifikasi Gagal: " + (json.reason || json.error || "Gambar tidak jelas"));
+                        }
+
+                    } catch (e) {
+                        console.error(e);
+                        alert("Gagal koneksi ke server.");
+                    } finally {
+                        this.isProcessing = false;
+                    }
+                },
+
+                logout() {
+                    localStorage.clear();
+                    window.location.href = 'user-login.html';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

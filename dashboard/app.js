@@ -14,15 +14,32 @@
                 pollingInterval: null, // Variable untuk menyimpan interval
                 lastChartDataJson: null, // untuk deteksi perubahan chart
 
-               init() {
-                    if (this.token) {
-                        this.isLoggedIn = true;
-                        this.username = localStorage.getItem('username') || 'User'; 
-                        this.startRealtimeUpdates(); 
-                    } else {
-                        // [PERBAIKAN] Jika tidak ada token, tendang ke halaman login!
+              init() {
+                    // 1. Cek Token dulu
+                    if (!this.token) {
                         window.location.href = 'user-login.html';
+                        return; // Stop eksekusi
                     }
+
+                    // 2. Cek Status User (Proteksi Suspended)
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        try {
+                            const user = JSON.parse(userStr);
+                            if (user.status === 'suspended') {
+                                // Kalau user statusnya suspended, tendang ke halaman suspended
+                                window.location.href = 'suspended.html';
+                                return; // Stop eksekusi
+                            }
+                        } catch (e) {
+                            console.error("Gagal parse data user", e);
+                        }
+                    }
+
+                    // 3. Jika aman, lanjut load data dashboard
+                    this.isLoggedIn = true;
+                    this.username = localStorage.getItem('username') || 'User'; 
+                    this.startRealtimeUpdates(); 
                 },
 
                 // --- SISTEM REALTIME (POLLING) ---
