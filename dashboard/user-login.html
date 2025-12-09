@@ -62,7 +62,7 @@
         </p>
     </div>
 
-    <script>
+   <script>
         // CONFIG: Ganti sesuai URL Ngrok kamu
         const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; 
 
@@ -71,6 +71,18 @@
                 form: { username: '', password: '' },
                 error: '',
                 isLoading: false,
+
+                // --- 1. TAMBAHKAN BAGIAN INIT() INI ---
+                init() {
+                    // Cek apakah ada token tersimpan
+                    const token = localStorage.getItem('jwt_token');
+                    
+                    if (token) {
+                        // Jika token ada, jangan tampilkan login, langsung lempar ke dashboard
+                        window.location.href = 'index.html';
+                    }
+                },
+                // --------------------------------------
 
                 async login() {
                     this.error = '';
@@ -84,21 +96,16 @@
                         const data = await res.json();
 
                         if (res.ok) {
-                            // 1. Simpan Token & Data User Lengkap
+                            // 1. Simpan Token & Data User
                             localStorage.setItem('jwt_token', data.token);
                             localStorage.setItem('username', data.user.username);
-                            localStorage.setItem('user', JSON.stringify(data.user)); // Penting untuk timer trial
+                            localStorage.setItem('user', JSON.stringify(data.user));
 
-                            // 2. LOGIKA REDIRECT PINTAR
-                            if (data.user.role === 'admin') {
-                                // Jika Admin login di form User -> Lempar ke Admin Panel
-                                // Path: dari /dashboard/user-login.html naik ke root (../) lalu ke superadmin/
-                                window.location.href = '../superadmin/admin-panel.html';
-                            } else {
-                                // Jika User biasa -> Lempar ke Dashboard
-                                // Path: user-login.html dan index.html ada di folder yang sama (/dashboard/)
-                                window.location.href = 'index.html'; 
-                            }
+                            // 2. [PERBAIKAN] HAPUS LOGIKA REDIRECT ADMIN
+                            // Apapun role-nya (termasuk admin), jika login lewat form user,
+                            // PAKSA masuk ke dashboard user.
+                            window.location.href = 'index.html'; 
+                            
                         } else {
                             this.error = data.error || 'Login gagal, periksa username/password.';
                         }

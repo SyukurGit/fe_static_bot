@@ -14,14 +14,14 @@
                 pollingInterval: null, // Variable untuk menyimpan interval
                 lastChartDataJson: null, // untuk deteksi perubahan chart
 
-                init() {
+               init() {
                     if (this.token) {
                         this.isLoggedIn = true;
-                        this.username = localStorage.getItem('username') || 'User'; // <-- TAMBAHAN 2: Baca saat init
-                        this.startRealtimeUpdates(); // Mulai mesin update otomatis
+                        this.username = localStorage.getItem('username') || 'User'; 
+                        this.startRealtimeUpdates(); 
                     } else {
-                        // Jika tidak ada token, jangan tampilkan dashboard
-                        this.isLoggedIn = false;
+                        // [PERBAIKAN] Jika tidak ada token, tendang ke halaman login!
+                        window.location.href = 'user-login.html';
                     }
                 },
 
