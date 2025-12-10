@@ -71,13 +71,13 @@
                     </div>
 
                     <div class="relative h-64 bg-slate-950 cursor-pointer overflow-hidden border-b border-slate-800" @click="viewImage(pay.image_path)">
-                        <img :src="API_URL + '/' + pay.image_path" 
-                             class="w-full h-full object-contain transition duration-500 hover:scale-110"
-                             onerror="this.src='https://via.placeholder.com/400x300?text=Gambar+Hilang'">
-                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition">
-                            <span class="text-white text-sm font-bold bg-black/50 px-3 py-1 rounded-full backdrop-blur">🔍 Zoom</span>
-                        </div>
-                    </div>
+    <img :src="API_URL + '/' + pay.image_path" 
+         class="w-full h-full object-contain transition duration-500 hover:scale-110"
+         onerror="this.onerror=null; this.src='logobot.png'; this.style.opacity='0.3';"> <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition">
+        <span class="text-white text-sm font-bold bg-black/50 px-3 py-1 rounded-full backdrop-blur">🔍 Zoom</span>
+    </div>
+    <div x-show="false" class="absolute bottom-2 left-2 text-[10px] text-red-400 bg-black/80 px-2 py-1 rounded">Gagal Memuat Gambar</div>
+</div>
 
                     <div class="p-4 space-y-3 flex-1">
                         <div class="grid grid-cols-2 gap-2 text-sm">
