@@ -93,9 +93,11 @@
 
     </main>
 
-    <script>
-        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; 
 
+
+    <script src="../config.js"></script>
+    <script>
+const API_URL = CONFIG.API_URL;
         function userDetail() {
             return {
                 token: localStorage.getItem('jwt_token'),

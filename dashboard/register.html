@@ -73,10 +73,11 @@
       </p>
   </div>
 
+
+  <script src="../config.js"></script>
   <script>
     // CONFIG: Ganti sesuai URL Ngrok kamu
-    const API_BASE_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev";
-
+const API_URL = CONFIG.API_URL;
     function registerAuth(){
       return {
         form: { username: '', password: '', confirm_password: '' },

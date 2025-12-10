@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi Bukti Transfer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="verificationPage()">
+
+    <nav class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="font-bold text-lg flex items-center gap-2">
+                <span>👮‍♂️ Verifikasi <span class="text-emerald-400">Pembayaran</span></span>
+                <span class="bg-slate-800 text-xs px-2 py-1 rounded-full text-slate-400" x-text="payments.length + ' Item'"></span>
+            </div>
+            <a href="admin-panel.html" class="text-sm text-slate-400 hover:text-white transition">← Kembali ke Panel</a>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Audit Bukti Transfer</h1>
+                <p class="text-slate-400 text-sm mt-1">
+                    Cek hasil OCR vs Gambar Asli. Hapus data lama untuk menghemat penyimpanan VPS.
+                </p>
+            </div>
+            
+            <div class="flex gap-3">
+                <button @click="fetchPayments" 
+                        class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                    🔄 Refresh
+                </button>
+                
+                <button @click="deleteAll" 
+                        x-show="payments.length > 0"
+                        class="bg-red-600/20 hover:bg-red-600 border border-red-600/50 text-red-500 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                    🗑 Kosongkan Semua Foto
+                </button>
+            </div>
+        </div>
+
+        <div x-show="payments.length === 0" class="text-center py-20 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed" x-cloak>
+            <p class="text-slate-500 text-lg">Tidak ada data pembayaran yang perlu dicek.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <template x-for="pay in payments" :key="pay.id">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-lg hover:border-slate-700 transition relative group">
+                    
+                    <button @click="deleteOne(pay.id)" 
+                            class="absolute top-2 right-2 z-10 bg-black/60 hover:bg-red-600 text-white p-1.5 rounded-full backdrop-blur transition opacity-0 group-hover:opacity-100"
+                            title="Hapus gambar & data ini">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+
+                    <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
+                        <div>
+                            <p class="font-bold text-emerald-400 truncate w-32" x-text="pay.username"></p>
+                            <p class="text-[10px] text-slate-500" x-text="formatDate(pay.created_at)"></p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-mono" x-text="'ID: ' + pay.user_id"></span>
+                        </div>
+                    </div>
+
+                    <div class="relative h-64 bg-slate-950 cursor-pointer overflow-hidden border-b border-slate-800" @click="viewImage(pay.image_path)">
+                        <img :src="API_URL + '/' + pay.image_path" 
+                             class="w-full h-full object-contain transition duration-500 hover:scale-110"
+                             onerror="this.src='https://via.placeholder.com/400x300?text=Gambar+Hilang'">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition">
+                            <span class="text-white text-sm font-bold bg-black/50 px-3 py-1 rounded-full backdrop-blur">🔍 Zoom</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 space-y-3 flex-1">
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                                <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Bank</span>
+                                <span class="font-mono font-bold text-yellow-400" x-text="pay.detected_bank || 'Unknown'"></span>
+                            </div>
+                            <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                                <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Nominal</span>
+                                <span class="font-mono font-bold text-emerald-400" x-text="formatRupiah(pay.detected_amount)"></span>
+                            </div>
+                        </div>
+
+                        <div x-data="{ open: false }">
+                            <button @click="open = !open" class="text-[10px] text-slate-500 hover:text-white w-full text-left flex justify-between items-center py-1">
+                                <span>📜 Lihat Teks Mentah OCR</span>
+                                <span x-text="open ? '▲' : '▼'"></span>
+                            </button>
+                            <div x-show="open" x-collapse 
+                                 class="mt-1 p-2 bg-black/30 rounded text-[10px] text-slate-400 font-mono h-20 overflow-y-auto border border-slate-800 leading-relaxed scrollbar-thin" 
+                                 x-text="pay.raw_ocr_response"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-slate-950 border-t border-slate-800 grid grid-cols-1 gap-2">
+                        <button @click="suspendUser(pay.user_id, pay.username)" 
+                                class="w-full bg-red-900/20 hover:bg-red-600 border border-red-900/30 hover:border-red-500 text-red-500 hover:text-white py-2 rounded text-xs font-bold transition flex items-center justify-center gap-2 group-btn">
+                            <span>🚨 Bekukan User (Palsu)</span>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="modalOpen" class="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm" x-cloak x-transition.opacity>
+            <div @click.away="modalOpen = false" class="relative max-w-5xl max-h-screen flex flex-col items-center">
+                <img :src="modalImage" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl border border-slate-700">
+                <button @click="modalOpen = false" class="mt-4 bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold transition shadow-lg border border-slate-700">
+                    Tutup Gambar
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+
+
+    <script src="../config.js"></script>
+    <script>
+        // CONFIG: Sesuaikan URL Backend
+const API_URL = CONFIG.API_URL;
+        function verificationPage() {
+            return {
+                token: localStorage.getItem('jwt_token'),
+                payments: [],
+                modalOpen: false,
+                modalImage: '',
+
+                init() {
+                    if (!this.token) window.location.href = 'admin-login.html';
+                    this.fetchPayments();
+                },
+
+                async fetchWithAuth(url, options = {}) {
+                    const headers = { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.token}`, 
+                        'ngrok-skip-browser-warning': 'true' 
+                    };
+                    try {
+                        const res = await fetch(`${API_URL}${url}`, { ...options, headers });
+                        if (res.status === 401) {
+                            alert("Sesi habis, login ulang.");
+                            window.location.href = 'admin-login.html';
+                        }
+                        return res;
+                    } catch (e) { console.error(e); return null; }
+                },
+
+                async fetchPayments() {
+                    const res = await this.fetchWithAuth('/api/admin/payments');
+                    if (res && res.ok) {
+                        const data = await res.json();
+                        this.payments = data.data;
+                    }
+                },
+
+                // --- FITUR HAPUS SATU ---
+                async deleteOne(id) {
+                    if (!confirm("Hapus struk ini? Gambar akan dihapus dari server.")) return;
+                    
+                    const res = await this.fetchWithAuth(`/api/admin/payments/${id}`, { method: 'DELETE' });
+                    if (res && res.ok) {
+                        this.payments = this.payments.filter(p => p.id !== id); // Update UI instant
+                    } else {
+                        alert("Gagal menghapus.");
+                    }
+                },
+
+                // --- FITUR HAPUS SEMUA (HEMAT STORAGE) ---
+                async deleteAll() {
+                    if (!confirm("⚠️ PERINGATAN!\n\nApakah Anda yakin ingin MENGHAPUS SEMUA FOTO dan riwayat?\n\nTindakan ini untuk menghemat penyimpanan VPS dan tidak bisa dibatalkan.")) return;
+                    
+                    const res = await this.fetchWithAuth('/api/admin/payments', { method: 'DELETE' });
+                    if (res && res.ok) {
+                        alert("✅ Semua foto telah dihapus. Penyimpanan lega!");
+                        this.fetchPayments(); // Refresh list
+                    } else {
+                        alert("Gagal melakukan pembersihan.");
+                    }
+                },
+
+                async suspendUser(userId, username) {
+                    const reason = prompt(`KONFIRMASI BEKUKAN AKUN:\nUser: ${username}\n\nMasukkan alasan (misal: Struk Palsu):`, "Struk tidak valid/editan");
+                    if (reason === null) return;
+
+                    const payload = { status: 'suspended', add_trial_days: 0 };
+                    
+                    const res = await this.fetchWithAuth(`/api/admin/users/${userId}/status`, {
+                        method: 'PATCH',
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (res && res.ok) {
+                        alert(`🚫 Akun ${username} berhasil DIBEKUKAN.`);
+                        // Opsional: Langsung hapus struknya setelah banned biar bersih
+                        // this.deleteOne(userId); 
+                    } else {
+                        alert("Gagal update status user.");
+                    }
+                },
+
+                viewImage(path) {
+                    this.modalImage = `${API_URL}/${path}`;
+                    this.modalOpen = true;
+                },
+
+                formatRupiah(num) {
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num || 0);
+                },
+                
+                formatDate(dateStr) {
+                    return new Date(dateStr).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

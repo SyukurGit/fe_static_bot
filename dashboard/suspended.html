@@ -66,6 +66,8 @@
         </div>
     </div>
 
+
+    <script src="../config.js"></script>
     <script>
         function suspendedApp() {
             return {
@@ -105,8 +107,7 @@
                         
                         // Tembak API Backend
                         // Ganti API_URL sesuai config kamu, misal pakai const API_URL di atas
-                        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; 
-                        
+const API_URL = CONFIG.API_URL;                        
                         const res = await fetch(`${API_URL}/api/verify-payment`, {
                             method: 'POST',
                             headers: {

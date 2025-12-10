@@ -12,14 +12,24 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen" x-data="adminPanel()">
 
     <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-           <div class="flex items-center gap-3">
-                <img src="croplogobot.png" alt="Logo" class="w-12 h-12 rounded-lg object-cover bg-slate-900 shadow-md">
-                <span class="font-bold text-lg text-white">Dompet<span class="text-emerald-400">Pintar</span>Bot</span>
-            </div>
-            <button @click="logout" class="text-sm text-red-400 hover:text-white transition">Logout</button>
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <img src="croplogobot.png" alt="Logo" class="w-12 h-12 rounded-lg object-cover bg-slate-900 shadow-md">
+            <span class="font-bold text-lg text-white">Dompet<span class="text-emerald-400">Pintar</span>Bot</span>
         </div>
-    </nav>
+
+        <!-- Tambahkan tombol di sini -->
+        <div class="flex items-center gap-4">
+            <a href="admin-verifikasi.html" class="text-sm text-emerald-400 hover:text-white transition">
+                Cek Transaksi
+            </a>
+            <button @click="logout" class="text-sm text-red-400 hover:text-white transition">
+                Logout
+            </button>
+        </div>
+    </div>
+</nav>
+
 
     <main class="max-w-6xl mx-auto px-6 py-8 space-y-8">
 
@@ -104,9 +114,11 @@
         </div>
     </main>
 
-    <script>
-        const API_URL = "https://unbusily-unmoralistic-micki.ngrok-free.dev"; 
 
+
+    <script src="../config.js"></script>
+    <script>
+const API_URL = CONFIG.API_URL;
         function adminPanel() {
             return {
                 token: localStorage.getItem('jwt_token'),
