@@ -3,184 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pantau Status User</title>
+    <title>Edit Status User</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
-    <link rel="icon" type="image/png" href="a76trans.png">
+    <style>[x-cloak] { display: none !important; }</style>
+    <script src="../config.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="userStatus()">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4" x-data="statusPage()">
 
-    <nav class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50">
-        <div class="max-w-3xl mx-auto px-6 h-16 flex items-center gap-4">
-            <a href="admin-panel.html" class="text-slate-400 hover:text-white flex items-center gap-1 text-sm font-medium">
-                &larr; Kembali
-            </a>
-            <h1 class="font-bold tracking-tight">Manajemen Status & Subscription</h1>
-        </div>
-    </nav>
-
-    <main class="max-w-3xl mx-auto px-6 py-8 space-y-6">
-
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex items-center justify-between">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+        
+        <div class="bg-slate-950 p-6 border-b border-slate-800 flex justify-between items-center">
             <div>
-                <p class="text-xs text-slate-500 uppercase font-bold">Username</p>
-                <h2 class="text-3xl font-bold text-white capitalize" x-text="user.username">...</h2>
+                <h1 class="text-xl font-bold text-white">Edit Status User</h1>
+                <p class="text-xs text-slate-500 mt-1">Atur masa aktif dan status langganan.</p>
             </div>
-            <div class="text-right">
-                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border"
-                      :class="{
-                        'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': user.status === 'active',
-                        'bg-amber-500/10 text-amber-400 border-amber-500/20': user.status === 'trial',
-                        'bg-red-500/10 text-red-400 border-red-500/20': user.status === 'suspended'
-                      }" 
-                      x-text="user.status">
-                </span>
-            </div>
+            <a href="admin-panel.html" class="text-slate-400 hover:text-white text-sm">✕ Tutup</a>
         </div>
 
-        <div x-show="user.status === 'trial'" class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-8 text-center">
-            <p class="text-amber-400 text-xs font-bold uppercase tracking-widest mb-2">Sisa Waktu Trial</p>
-            <div class="text-5xl font-mono font-black text-white" x-text="countdown">00:00:00</div>
-            <p class="text-slate-400 text-xs mt-2" x-text="'Berakhir pada: ' + formatDate(user.trial_ends_at)"></p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-6 space-y-6">
             
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/50 transition">
-                <h3 class="font-bold text-white mb-2">✅ Set Active (Skip Trial)</h3>
-                <p class="text-xs text-slate-400 mb-4">User jadi permanen & bebas bayar.</p>
-                <button @click="updateStatus('active')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-sm transition shadow-lg shadow-emerald-900/20">
-                    Aktifkan Permanen
-                </button>
-            </div>
-
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-red-500/50 transition">
-                <h3 class="font-bold text-white mb-2">⛔ Suspend User</h3>
-                <p class="text-xs text-slate-400 mb-4">Blokir akses dashboard user ini.</p>
-                <button @click="updateStatus('suspended')" class="w-full bg-slate-800 hover:bg-red-900/50 text-red-400 hover:text-red-300 border border-slate-700 font-bold py-3 rounded-lg text-sm transition">
-                    Bekukan Akun
-                </button>
-            </div>
-
-            <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <h3 class="font-bold text-white mb-2">🎁 Tambah Waktu Trial</h3>
-                <p class="text-xs text-slate-400 mb-4">Berikan perpanjangan waktu untuk user mencoba.</p>
-                <div class="flex gap-2">
-                    <button @click="addTrial(1)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 rounded-lg text-sm border border-slate-700">
-                        +1 Hari
-                    </button>
-                    <button @click="addTrial(3)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 rounded-lg text-sm border border-slate-700">
-                        +3 Hari
-                    </button>
-                    <button @click="addTrial(7)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 rounded-lg text-sm border border-slate-700">
-                        +1 Minggu
-                    </button>
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                <div class="flex justify-between mb-2">
+                    <span class="text-xs text-slate-400">Username</span>
+                    <span class="text-sm font-bold text-emerald-400" x-text="user.username">...</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-xs text-slate-400">Status Saat Ini</span>
+                    <span class="text-xs px-2 py-0.5 rounded font-bold uppercase"
+                          :class="{
+                              'bg-emerald-500/20 text-emerald-400': user.status === 'active',
+                              'bg-amber-500/20 text-amber-400': user.status === 'trial',
+                              'bg-red-500/20 text-red-400': user.status === 'suspended'
+                          }" x-text="user.status">...</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-400">Expired Pada</span>
+                    <span class="text-sm font-mono text-white" x-text="formatDate(user.trial_ends_at)">...</span>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-700 text-center">
+                    <span class="text-xs text-slate-500">Sisa Waktu: </span>
+                    <span class="font-bold" 
+                          :class="daysRemaining > 0 ? 'text-blue-400' : 'text-red-400'" 
+                          x-text="daysRemaining + ' Hari'"></span>
                 </div>
             </div>
 
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">Tambah / Kurangi Durasi</label>
+                <div class="flex gap-2 mb-2">
+                    <input type="number" x-model.number="addDays" 
+                           placeholder="0"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:border-emerald-500 outline-none text-white font-mono">
+                </div>
+                <p class="text-[10px] text-slate-500 mb-3">
+                    * Masukkan angka <b>positif</b> (misal: 30) untuk menambah.<br>
+                    * Masukkan angka <b>negatif</b> (misal: -5) untuk mengurangi.
+                </p>
+
+                <div class="grid grid-cols-4 gap-2">
+                    <button @click="addDays = 3" class="bg-slate-800 hover:bg-slate-700 text-xs py-1.5 rounded border border-slate-700 transition">+3 Hari</button>
+                    <button @click="addDays = 30" class="bg-slate-800 hover:bg-slate-700 text-xs py-1.5 rounded border border-slate-700 transition">+30 Hari</button>
+                    <button @click="addDays = -1" class="bg-red-900/20 hover:bg-red-900/40 text-red-400 text-xs py-1.5 rounded border border-red-900/30 transition">-1 Hari</button>
+                    <button @click="addDays = -7" class="bg-red-900/20 hover:bg-red-900/40 text-red-400 text-xs py-1.5 rounded border border-red-900/30 transition">-7 Hari</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">Paksa Ganti Status (Opsional)</label>
+                <select x-model="newStatus" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:border-emerald-500 outline-none text-sm">
+                    <option value="">-- Biarkan Otomatis --</option>
+                    <option value="active">Active (Premium)</option>
+                    <option value="trial">Trial (Percobaan)</option>
+                    <option value="suspended">Suspended (Bekukan)</option>
+                </select>
+            </div>
+
+            <button @click="saveChanges" 
+                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-emerald-900/20 transition">
+                💾 Simpan Perubahan
+            </button>
+
         </div>
+    </div>
 
-    </main>
-
-
-
-    <script src="../config.js"></script>
     <script>
-const API_URL = CONFIG.API_URL;
-        function userStatus() {
+        const API_URL = CONFIG.API_URL;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id');
+
+        function statusPage() {
             return {
                 token: localStorage.getItem('jwt_token'),
-                userID: new URLSearchParams(window.location.search).get('id'),
                 user: {},
-                countdown: 'Loading...',
-                timer: null,
+                addDays: 0,
+                newStatus: '',
+                daysRemaining: 0,
 
                 init() {
-                    if (!this.token) window.location.href = 'admin-login.html';
-                    if (!this.userID) window.location.href = 'admin-panel.html';
-                    this.fetchData();
+                    if(!this.token) window.location.href = 'admin-login.html';
+                    if(!userId) { alert("ID User tidak ditemukan"); window.location.href = 'admin-panel.html'; }
+                    this.fetchUserDetail();
                 },
 
                 async fetchWithAuth(url, options = {}) {
-                    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' };
+                    const headers = { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.token}`, 
+                        'ngrok-skip-browser-warning': 'true' 
+                    };
                     return await fetch(`${API_URL}${url}`, { ...options, headers });
                 },
 
-                async fetchData() {
-                    // Pakai endpoint stats untuk dapat detail user + trial_ends_at
-                    const res = await this.fetchWithAuth(`/api/admin/users/${this.userID}/stats`);
-                    if (res.ok) {
+                async fetchUserDetail() {
+                    const res = await this.fetchWithAuth(`/api/admin/users/${userId}/stats`);
+                    if(res.ok) {
                         const data = await res.json();
                         this.user = data.user;
-                        if (this.user.status === 'trial') this.startTimer();
-                    }
-                },
-
-                // --- UPDATE STATUS (SKIP / SUSPEND) ---
-                async updateStatus(newStatus) {
-                    if(!confirm(`Ubah status user menjadi ${newStatus.toUpperCase()}?`)) return;
-                    
-                    const res = await this.fetchWithAuth(`/api/admin/users/${this.userID}/status`, {
-                        method: 'PATCH',
-                        body: JSON.stringify({ status: newStatus })
-                    });
-
-                    if (res.ok) {
-                        alert("✅ Status berhasil diupdate!");
-                        location.reload();
+                        this.calculateRemaining();
                     } else {
-                        alert("❌ Gagal update status.");
+                        alert("Gagal ambil data user");
                     }
                 },
 
-                // --- TAMBAH TRIAL ---
-                async addTrial(days) {
-                    if(!confirm(`Tambah trial ${days} hari?`)) return;
-
-                    const res = await this.fetchWithAuth(`/api/admin/users/${this.userID}/status`, {
-                        method: 'PATCH',
-                        body: JSON.stringify({ add_trial_days: days })
-                    });
-
-                    if (res.ok) {
-                        alert(`✅ Berhasil tambah ${days} hari trial!`);
-                        location.reload();
-                    }
+                calculateRemaining() {
+                    const now = new Date();
+                    const end = new Date(this.user.trial_ends_at);
+                    const diffTime = end - now;
+                    this.daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                 },
 
-                // --- TIMER HITUNG MUNDUR ---
-                startTimer() {
-                    if (this.timer) clearInterval(this.timer);
-                    this.updateCountdown();
-                    this.timer = setInterval(() => this.updateCountdown(), 1000);
-                },
+                async saveChanges() {
+                    const payload = {
+                        add_trial_days: parseInt(this.addDays),
+                        status: this.newStatus
+                    };
 
-                updateCountdown() {
-                    if (!this.user.trial_ends_at) return;
-                    
-                    const end = new Date(this.user.trial_ends_at).getTime();
-                    const now = new Date().getTime();
-                    const diff = end - now;
+                    try {
+                        const res = await this.fetchWithAuth(`/api/admin/users/${userId}/status`, {
+                            method: 'PATCH',
+                            body: JSON.stringify(payload)
+                        });
 
-                    if (diff < 0) {
-                        this.countdown = "EXPIRED";
-                        clearInterval(this.timer);
-                    } else {
-                        const h = Math.floor(diff / (1000 * 60 * 60));
-                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        const s = Math.floor((diff % (1000 * 60)) / 1000);
-                        // Format HH:MM:SS
-                        this.countdown = 
-                            String(h).padStart(2, '0') + ":" + 
-                            String(m).padStart(2, '0') + ":" + 
-                            String(s).padStart(2, '0');
+                        const data = await res.json();
+
+                        if(res.ok) {
+                            alert("✅ Berhasil! " + (data.result.new_status === 'suspended' ? 'User otomatis DIBEKUKAN karena waktu habis.' : 'Waktu berhasil diperbarui.'));
+                            
+                            // --- BAGIAN YANG DIUBAH ---
+                            // 1. Reset Form agar bersih
+                            this.addDays = 0;
+                            this.newStatus = '';
+                            
+                            // 2. Refresh Data User (Reload data di tempat tanpa refresh browser)
+                            this.fetchUserDetail(); 
+                            
+                            // (Tidak ada window.location.href redirect lagi)
+                            // --------------------------
+                        } else {
+                            alert("Gagal: " + (data.error || "Unknown Error"));
+                        }
+                    } catch(e) {
+                        alert("Error koneksi");
                     }
                 },
 
                 formatDate(dateStr) {
-                    if (!dateStr) return "-";
-                    return new Date(dateStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' });
+                    if(!dateStr) return '-';
+                    return new Date(dateStr).toLocaleString('id-ID', { 
+                        day: 'numeric', month: 'long', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    });
                 }
             }
         }
