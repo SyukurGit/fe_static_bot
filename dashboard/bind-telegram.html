@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bind Telegram - DompetPintarBot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="icon" type="image/png" href="a76trans.png">
+    <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
+    <script src="../config.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="bindTele()">
+
+    <nav class="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
+        <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="pengaturanAkun.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition">
+                <span class="text-xl">←</span>
+                <span class="text-sm font-medium">Batal</span>
+            </a>
+            <span class="font-bold text-white">Hubungkan Bot</span>
+            <div class="w-8"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-md mx-auto px-4 py-8 space-y-6">
+
+        <div class="bg-blue-600/10 border border-blue-600/20 rounded-2xl p-5 relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/20 rounded-full blur-xl"></div>
+            
+            <h3 class="font-bold text-blue-400 mb-2">Langkah 1: Dapatkan ID</h3>
+            <ol class="list-decimal list-inside text-sm text-slate-300 space-y-2">
+                <li>Buka aplikasi Telegram.</li>
+                <li>Cari bot: <a href="https://t.me/DompetPintar_A76Labs_Bot" target="_blank" class="text-white font-bold underline decoration-blue-500">@DompetPintar_A76Labs_Bot</a></li>
+                <li>Klik <b>Start</b> atau ketik <code>/start</code>.</li>
+                <li>Bot akan membalas dengan info ID Anda jika belum terdaftar.</li>
+                <li>Salin ID tersebut (hanya angka).</li>
+            </ol>
+            
+            <a href="https://t.me/DompetPintar_A76Labs_Bot" target="_blank" class="mt-4 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.198-.054-.306-.346-.106l-6.4 4.022-2.76-.848c-.602-.187-.61-.6.125-.892l10.78-4.156c.5-.187.943.128.808.815z"/></svg>
+                Buka Bot Sekarang
+            </a>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+            <h3 class="font-bold text-white mb-4">Langkah 2: Masukkan ID</h3>
+            
+            <form @submit.prevent="saveTele" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telegram ID (Angka)</label>
+                    <input type="number" x-model="telegramId" placeholder="Contoh: 123456789"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:border-blue-500 outline-none transition text-sm text-white font-mono">
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-900/20 transition flex items-center justify-center gap-2"
+                        :disabled="isLoading">
+                    <span x-show="isLoading" class="animate-spin">⏳</span>
+                    <span x-text="isLoading ? 'Menghubungkan...' : 'Simpan & Hubungkan'"></span>
+                </button>
+
+                <p x-show="message" 
+                   :class="isError ? 'text-red-400 bg-red-400/10 border-red-400/20' : 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'" 
+                   class="text-xs text-center p-3 rounded-lg border" x-text="message"></p>
+            </form>
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL = CONFIG.API_URL;
+
+        function bindTele() {
+            return {
+                token: localStorage.getItem('jwt_token'),
+                telegramId: '',
+                isLoading: false,
+                message: '',
+                isError: false,
+
+                init() {
+                    if (!this.token) window.location.href = 'user-login.html';
+                    
+                    // Pre-fill jika sudah ada
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        const u = JSON.parse(userStr);
+                        if(u.telegram_id) this.telegramId = u.telegram_id;
+                    }
+                },
+
+                async saveTele() {
+                    this.message = '';
+                    this.isError = false;
+
+                    if (!this.telegramId) {
+                        this.isError = true;
+                        this.message = "ID Telegram wajib diisi!";
+                        return;
+                    }
+
+                    this.isLoading = true;
+                    
+                    // Kita kirim sebagai integer
+                    const payload = { telegram_id: parseInt(this.telegramId) };
+
+                    try {
+                        const res = await fetch(`${API_URL}/api/user/profile`, {
+                            method: 'PUT',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`,
+                                'ngrok-skip-browser-warning': 'true'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await res.json();
+
+                        if (res.ok) {
+                            // Update LocalStorage
+                            localStorage.setItem('user', JSON.stringify(data.user));
+                            
+                            this.message = "✅ Berhasil terhubung! Bot siap digunakan.";
+                            setTimeout(() => window.location.href = 'pengaturanAkun.html', 1500);
+                        } else {
+                            this.isError = true;
+                            this.message = data.error || "Gagal bind telegram.";
+                        }
+                    } catch (e) {
+                        this.isError = true;
+                        this.message = "Koneksi error.";
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

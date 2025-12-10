@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Akun - DompetPintarBot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="icon" type="image/png" href="a76trans.png">
+    <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
+    <script src="../config.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="accountSettings()">
+
+    <nav class="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
+        <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-sm font-medium">Kembali ke Dashboard</span>
+            </a>
+            <span class="font-bold text-lg text-white">Pengaturan Akun</span>
+        </div>
+    </nav>
+
+    <main class="max-w-xl mx-auto px-4 py-8 space-y-6">
+
+        <div class="flex items-center gap-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+                <span x-text="user.username ? user.username.charAt(0).toUpperCase() : 'U'"></span>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-white capitalize" x-text="user.username || 'User'"></h2>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+                      :class="{
+                        'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': user.status === 'active',
+                        'bg-amber-500/10 text-amber-400 border-amber-500/20': user.status === 'trial',
+                        'bg-red-500/10 text-red-400 border-red-500/20': user.status === 'suspended'
+                      }" 
+                      x-text="user.status">Status</span>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-800">
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <span>👤</span> Data Login
+                </h3>
+            </div>
+            <div class="p-6 text-center space-y-4">
+                <p class="text-sm text-slate-400">
+                    Ganti username atau password akun Anda untuk keamanan.
+                </p>
+                <a href="update-profile.html" class="block w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl border border-slate-700 transition">
+                    Update Username & Password
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-800">
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <span>💳</span> Pengaturan limit
+                </h3>
+            </div>
+            <div class="p-6 text-center space-y-4">
+                <p class="text-sm text-slate-400">
+                    Pasang Limit Pemberitahuan Pengeluaran Harian Anda
+                </p>
+                <a href="settings.html" class="block w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl border border-slate-700 transition">
+                    Atur Limit Pengeluaran Harian
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden relative">
+            <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <span>🔗</span> Integrasi Telegram
+                </h3>
+                
+                <span x-show="user.telegram_id" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full border border-blue-500/20 font-bold" x-cloak>
+                    TERHUBUNG
+                </span>
+                <span x-show="!user.telegram_id" class="text-[10px] bg-slate-700 text-slate-400 px-2 py-1 rounded-full border border-slate-600 font-bold" x-cloak>
+                    BELUM CONNECT
+                </span>
+            </div>
+
+            <div class="p-6 space-y-4">
+                
+                <div x-show="user.telegram_id" x-transition x-cloak class="space-y-4">
+                    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
+                        <p class="text-xs text-blue-300 uppercase font-bold mb-1">Telegram ID</p>
+                        <p class="text-xl font-mono font-bold text-white tracking-wider" x-text="user.telegram_id"></p>
+                        
+                        <template x-if="user.telegram_username">
+                            <div class="mt-2 pt-2 border-t border-blue-500/20">
+                                <p class="text-[10px] text-blue-300">Username: <span class="text-white font-bold" x-text="'@' + user.telegram_username"></span></p>
+                            </div>
+                        </template>
+                    </div>
+                    <p class="text-xs text-slate-500 text-center">
+                        Akun Anda sudah terhubung. Anda bisa input transaksi lewat bot.
+                    </p>
+                    <a href="bind-telegram.html" class="block w-full text-center text-sm text-slate-400 hover:text-white py-2 transition">
+                        Ganti Akun Telegram?
+                    </a>
+                </div>
+
+                <div x-show="!user.telegram_id" x-transition x-cloak class="text-center space-y-4">
+                    <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto text-3xl opacity-50">
+                        ✈️
+                    </div>
+                    <p class="text-sm text-slate-400">
+                        Hubungkan akun Telegram agar bisa mencatat keuangan lewat chat bot secara cepat.
+                    </p>
+                    <a href="bind-telegram.html" class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-900/20 transition">
+                        🔗 Bind ID Telegram Sekarang
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL = CONFIG.API_URL;
+
+        function accountSettings() {
+            return {
+                user: {},
+
+                init() {
+                    this.loadUser();
+                },
+
+                loadUser() {
+                    // Ambil data user dari LocalStorage
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        try {
+                            this.user = JSON.parse(userStr);
+                            
+                            // DEBUG: Cek di console apakah telegram_id ada
+                            console.log("User Data:", this.user);
+                        } catch (e) {
+                            console.error("Gagal load user", e);
+                        }
+                    } else {
+                        // Kalau tidak ada data user, lempar ke login
+                        window.location.href = 'user-login.html';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

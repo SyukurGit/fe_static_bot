@@ -57,10 +57,17 @@
                         Laporan Pengeluaran
                     </a>
 
-                    <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
+                    <!-- <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
                         <a href="settings.html"
                            class="text-sm font-medium text-slate-400 hover:text-amber-300 transition">
-                            ⚙️ Atur Limit
+                             Atur Limit
+                        </a> -->
+
+
+                         <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
+                        <a href="pengaturanAkun.html"
+                           class="text-sm font-medium text-slate-400 hover:text-amber-300 transition">
+                            ⚙️ Pengaturan
                         </a>
 
                         <button @click="logout"
@@ -132,7 +139,7 @@
                     </template>
 
                     <template x-if="userStatus === 'trial'">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                        <span class="px-2 py-0.5 rounded text-[15px] font-bold font-mono tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
                             <span x-text="trialCountdown + ' sisa trial'"></span>
                         </span>
                     </template>

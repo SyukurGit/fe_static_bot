@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profil - DompetPintarBot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="icon" type="image/png" href="a76trans.png">
+    <style>[x-cloak] { display: none !important; } body { font-family: 'Inter', sans-serif; }</style>
+    <script src="../config.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen" x-data="updateProfile()">
+
+    <nav class="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
+        <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="pengaturanAkun.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition">
+                <span class="text-xl">←</span>
+                <span class="text-sm font-medium">Batal</span>
+            </a>
+            <span class="font-bold text-white">Edit Login</span>
+            <div class="w-8"></div> </div>
+    </nav>
+
+    <main class="max-w-md mx-auto px-4 py-8">
+        
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-slate-800 mx-auto flex items-center justify-center text-3xl mb-3">
+                    🔐
+                </div>
+                <h2 class="text-lg font-bold text-white">Amankan Akunmu</h2>
+                <p class="text-xs text-slate-400">Kosongkan password jika hanya ingin ganti username.</p>
+            </div>
+
+            <form @submit.prevent="saveChanges" class="space-y-5">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Username Baru</label>
+                    <input type="text" x-model="form.username" 
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none transition text-sm text-white">
+                </div>
+
+                <div class="border-t border-slate-800 my-4"></div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password Baru (Opsional)</label>
+                    <input type="password" x-model="form.password" placeholder="Biarkan kosong jika tidak ubah"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none transition text-sm text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Konfirmasi Password</label>
+                    <input type="password" x-model="form.confirmPassword" placeholder="Ulangi password baru"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none transition text-sm text-white">
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-900/20 transition flex items-center justify-center gap-2"
+                        :disabled="isLoading">
+                    <span x-show="isLoading" class="animate-spin">⏳</span>
+                    <span x-text="isLoading ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
+                </button>
+
+                <p x-show="message" 
+                   :class="isError ? 'text-red-400 bg-red-400/10 border-red-400/20' : 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'" 
+                   class="text-xs text-center p-3 rounded-lg border" x-text="message"></p>
+            </form>
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL = CONFIG.API_URL;
+
+        function updateProfile() {
+            return {
+                token: localStorage.getItem('jwt_token'),
+                form: { username: '', password: '', confirmPassword: '' },
+                isLoading: false,
+                message: '',
+                isError: false,
+
+                init() {
+                    if (!this.token) window.location.href = 'user-login.html';
+                    // Load current username
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        const u = JSON.parse(userStr);
+                        this.form.username = u.username;
+                    }
+                },
+
+                async saveChanges() {
+                    this.message = '';
+                    this.isError = false;
+
+                    // Validasi Client
+                    if (this.form.password && this.form.password !== this.form.confirmPassword) {
+                        this.isError = true;
+                        this.message = "Konfirmasi password tidak cocok!";
+                        return;
+                    }
+                    if (this.form.password && this.form.password.length < 6) {
+                        this.isError = true;
+                        this.message = "Password minimal 6 karakter.";
+                        return;
+                    }
+
+                    this.isLoading = true;
+                    
+                    const payload = { username: this.form.username };
+                    if (this.form.password) payload.password = this.form.password;
+
+                    try {
+                        const res = await fetch(`${API_URL}/api/user/profile`, {
+                            method: 'PUT',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`,
+                                'ngrok-skip-browser-warning': 'true'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await res.json();
+
+                        if (res.ok) {
+                            // Update LocalStorage
+                            localStorage.setItem('user', JSON.stringify(data.user));
+                            localStorage.setItem('username', data.user.username);
+                            
+                            this.message = "✅ Data berhasil disimpan! Redirecting...";
+                            setTimeout(() => window.location.href = 'pengaturanAkun.html', 1500);
+                        } else {
+                            this.isError = true;
+                            this.message = data.error || "Gagal update profile.";
+                        }
+                    } catch (e) {
+                        this.isError = true;
+                        this.message = "Terjadi kesalahan koneksi.";
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
