@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menunggu Verifikasi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../config.js"></script>
+</head>
+<body class="bg-slate-950 text-white flex items-center justify-center min-h-screen p-4" x-data="waitingApp()">
+
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-2xl">
+        
+        <div class="w-20 h-20 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl animate-pulse">
+            ⏳
+        </div>
+
+        <h1 class="text-2xl font-bold mb-2">Verifikasi Admin</h1>
+        <p class="text-slate-400 text-sm mb-8 leading-relaxed">
+            Status Anda saat ini: <span class="text-amber-400 font-bold uppercase">Pending</span>.<br>
+            Bukti pembayaran Anda sedang dalam antrian pengecekan manual oleh Admin.
+        </p>
+
+        <div class="border-t border-slate-800 pt-6">
+            <p class="text-xs text-slate-500 mb-3">Salah kirim gambar? Upload ulang di sini:</p>
+            
+            <input type="file" x-ref="manualFile" @change="uploadManual" class="hidden" accept="image/*">
+            
+            <button @click="$refs.manualFile.click()" :disabled="isUploading"
+                class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2">
+                <span x-show="!isUploading">🔄 Upload Ulang Bukti</span>
+                <span x-show="isUploading">Mengirim...</span>
+            </button>
+        </div>
+
+        <button @click="logout" class="mt-6 text-xs text-red-400 hover:text-red-300 underline">
+            Logout / Ganti Akun
+        </button>
+
+    </div>
+
+    <script>
+        function waitingApp() {
+            return {
+                token: localStorage.getItem('jwt_token'),
+                isUploading: false,
+
+                init() {
+                    if(!this.token) window.location.href = 'user-login.html';
+                    // Cek status real-time (opsional, siapa tau admin udah approve)
+                    this.checkStatus();
+                },
+
+                async checkStatus() {
+                    // Panggil endpoint /login atau profile untuk cek status terbaru
+                    // Jika sudah 'active', langsung lempar ke dashboard
+                },
+
+                async uploadManual(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    this.isUploading = true;
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+const res = await fetch(`${CONFIG.API_URL}/api/manual-payment`, {                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${this.token}` },
+                            body: formData
+                        });
+                        
+                        const data = await res.json();
+                        if (res.ok) {
+                            alert("✅ Upload berhasil! Menunggu admin.");
+                            
+                            // Update status di localstorage biar konsisten
+                            let user = JSON.parse(localStorage.getItem('user'));
+                            user.status = 'pending';
+                            localStorage.setItem('user', JSON.stringify(user));
+                            
+                            // Reload halaman
+                            window.location.reload();
+                        } else {
+                            alert("Gagal upload: " + data.error);
+                        }
+                    } catch (err) {
+                        alert("Error koneksi");
+                    } finally {
+                        this.isUploading = false;
+                    }
+                },
+
+                logout() {
+                    localStorage.clear();
+                    window.location.href = 'user-login.html';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

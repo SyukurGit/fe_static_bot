@@ -57,6 +57,24 @@
                     <span x-show="!isProcessing">Kirim Bukti & Verifikasi Otomatis</span>
                     <span x-show="isProcessing" class="animate-pulse">Memproses AI...</span>
                 </button>
+
+                <div x-show="showManualOption" x-transition x-cloak class="mt-4 p-4 bg-rose-900/20 border border-rose-500/30 rounded-xl text-left">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2 text-rose-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            <span class="text-xs font-bold">Gagal Verifikasi Otomatis</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-tight">
+                            AI tidak dapat membaca struk ini. Silakan coba upload gambar yang lebih jelas, atau gunakan tombol di bawah untuk verifikasi manual Admin.
+                        </p>
+                        
+                        <a href="waiting.html" 
+                           class="mt-2 w-full flex items-center justify-center px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition gap-2">
+                            <span>📤</span> Upload Manual ke Admin
+                        </a>
+                    </div>
+                </div>
+
             </div>
 
             <button @click="logout" class="text-xs text-red-400 hover:text-red-300 font-medium mt-4">
@@ -66,7 +84,6 @@
         </div>
     </div>
 
-
     <script src="../config.js"></script>
     <script>
         function suspendedApp() {
@@ -74,13 +91,13 @@
                 username: localStorage.getItem('username') || 'User',
                 file: null,
                 isProcessing: false,
+                showManualOption: false, // State untuk menampilkan tombol manual
 
                 init() {
-                    // Proteksi Terbalik: Kalau akunnya 'active' / 'trial', usir balik ke Dashboard
-                    // Biar gak ada orang iseng buka halaman ini kalau gak perlu.
                     const userStr = localStorage.getItem('user');
                     if (userStr) {
                         const user = JSON.parse(userStr);
+                        // Hanya user status 'suspended' yang boleh di sini
                         if (user.status !== 'suspended') {
                             window.location.href = 'index.html';
                         }
@@ -91,30 +108,28 @@
 
                 handleFile(e) {
                     this.file = e.target.files[0];
+                    // Reset alert manual jika user mencoba memilih file baru
+                    this.showManualOption = false; 
                 },
 
-               async verifyPayment() {
+                async verifyPayment() {
                     if (!this.file) return alert("Pilih file bukti transfer dulu!");
 
                     this.isProcessing = true;
-                    
-                    // Siapkan data form (Multipart)
+                    this.showManualOption = false;
+
                     const formData = new FormData();
                     formData.append('file', this.file);
 
                     try {
                         const token = localStorage.getItem('jwt_token');
+                        const API_URL = CONFIG.API_URL; 
                         
-                        // Tembak API Backend
-                        // Ganti API_URL sesuai config kamu, misal pakai const API_URL di atas
-const API_URL = CONFIG.API_URL;                        
                         const res = await fetch(`${API_URL}/api/verify-payment`, {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'ngrok-skip-browser-warning': 'true'
-                                // Jangan set 'Content-Type': 'multipart/form-data', 
-                                // Biarkan browser yang set otomatis boundary-nya!
                             },
                             body: formData
                         });
@@ -122,24 +137,21 @@ const API_URL = CONFIG.API_URL;
                         const json = await res.json();
 
                         if (res.ok) {
-                            // Sukses!
                             alert("✅ " + json.message);
-                            
-                            // Update data user di localStorage biar statusnya berubah jadi 'active'
+                            // Update status user jadi active
                             let user = JSON.parse(localStorage.getItem('user'));
                             user.status = 'active';
                             localStorage.setItem('user', JSON.stringify(user));
-
-                            // Masuk dashboard
                             window.location.href = 'index.html';
                         } else {
-                            // Gagal (ditolak AI atau error lain)
-                            alert("❌ Verifikasi Gagal: " + (json.reason || json.error || "Gambar tidak jelas"));
+                            // JIKA GAGAL: Tampilkan opsi manual
+                            this.showManualOption = true;
                         }
 
                     } catch (e) {
                         console.error(e);
-                        alert("Gagal koneksi ke server.");
+                        // Jika server error/mati, tampilkan juga opsi manual biar user gak stuck
+                        this.showManualOption = true; 
                     } finally {
                         this.isProcessing = false;
                     }

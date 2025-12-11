@@ -27,23 +27,32 @@ function mainDashboard() {
             }
 
             // 2. Cek Status User & Load Data untuk Countdown
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                try {
-                    const user = JSON.parse(userStr);
-                    if (user.status === 'suspended') {
-                        window.location.href = 'suspended.html';
-                        return;
-                    }
-                    
-                    // Simpan status & waktu trial ke state
-                    this.userStatus = user.status;
-                    this.trialEndsAt = user.trial_ends_at;
-
-                } catch (e) {
-                    console.error("Gagal parse data user", e);
-                }
+           const userStr = localStorage.getItem('user');
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            
+            // --- LOGIC BARU ---
+            // 1. Jika Suspended -> ke suspended.html (Kecuali kita memang sedang di page itu)
+            if (user.status === 'suspended' && !window.location.href.includes('suspended.html')) {
+                window.location.href = 'suspended.html';
+                return;
             }
+
+            // 2. Jika Pending -> ke waiting.html (Kecuali kita sedang di page itu)
+            if (user.status === 'pending' && !window.location.href.includes('waiting.html')) {
+                window.location.href = 'waiting.html';
+                return;
+            }
+            // ------------------
+
+            this.userStatus = user.status;
+            this.trialEndsAt = user.user_trial_ends_at; // sesuaikan key json
+
+        } catch (e) {
+            console.error("Gagal parse user", e);
+        }
+    }
 
             // 3. Jika aman, lanjut load data dashboard
             this.isLoggedIn = true;
