@@ -141,13 +141,18 @@
 
     <script src="../config.js"></script>
     <script>
-        const API_URL = CONFIG.API_URL;
+        // 1. API Utama tetap pakai Config lama (Ngrok) untuk Logic & Data
+        const API_URL = CONFIG.API_URL; 
+
+        // 2. URL Khusus Gambar pakai Cloudflare Tunnel
+        // Pastikan tidak ada slash (/) di akhir link ini
+        const CLOUDFLARE_IMAGE_URL = "https://alternatives-brisbane-msg-cow.trycloudflare.com"; 
 
         function verificationPage() {
             return {
                 token: localStorage.getItem('jwt_token'),
                 allPayments: [],
-                activeTab: 'manual', // Default tab buka manual dulu
+                activeTab: 'manual',
                 modalOpen: false,
                 modalImage: '',
 
@@ -156,24 +161,23 @@
                     this.fetchPayments();
                 },
 
-                // --- LOGIC PEMISAH (FILTERING) ---
+                // --- FILTERING ---
                 get manualList() {
-                    // Hanya ambil yg detected_bank == 'MANUAL_CHECK'
                     return this.allPayments.filter(p => p.detected_bank === 'MANUAL_CHECK');
                 },
 
                 get autoList() {
-                    // Ambil SEMUA KECUALI yang manual check
                     return this.allPayments.filter(p => p.detected_bank !== 'MANUAL_CHECK');
                 },
-                // ---------------------------------
-
+                
+                // --- FETCH DATA (Tetap pakai API_URL Ngrok) ---
                 async fetchWithAuth(url, options = {}) {
                     const headers = { 
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${this.token}`, 
                         'ngrok-skip-browser-warning': 'true' 
                     };
+                    // REQUEST KE API UTAMA (NGROK)
                     const res = await fetch(`${API_URL}${url}`, { ...options, headers });
                     return res;
                 },
@@ -186,12 +190,15 @@
                     }
                 },
 
-                // Logic Gambar Anti Hilang
+                // --- LOGIC GAMBAR (DIPISAH KE CLOUDFLARE) ---
                 getImageUrl(path) {
                     if (!path) return '';
-                    // Bersihkan slash ganda jika ada
+                    
+                    // Bersihkan slash di awal path jika ada (misal: "/uploads/..." jadi "uploads/...")
                     const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-                    return `${API_URL}/${cleanPath}`;
+                    
+                    // RETURNNYA PAKAI URL CLOUDFLARE
+                    return `${CLOUDFLARE_IMAGE_URL}/${cleanPath}`;
                 },
 
                 viewImage(path) {
@@ -199,6 +206,7 @@
                     this.modalOpen = true;
                 },
 
+                // --- ACTION BUTTONS (Tetap ke API Utama) ---
                 async approveUser(userId, username) {
                     if(!confirm(`Aktifkan user ${username}?`)) return;
                     await this.fetchWithAuth(`/api/admin/users/${userId}/status`, {
@@ -211,7 +219,6 @@
 
                 async rejectUser(userId, username) {
                     if(!confirm(`Tolak verifikasi ${username}?`)) return;
-                    // Bisa hapus payment log atau set status suspended
                     await this.fetchWithAuth(`/api/admin/users/${userId}/status`, {
                         method: 'PATCH',
                         body: JSON.stringify({ status: 'suspended' })
